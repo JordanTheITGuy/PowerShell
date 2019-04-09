@@ -16,7 +16,13 @@
     Contact:     @JordanTheItGuy
     Created:     2019-04-09
     Updated:     2019-04-09
+
+    Version 1.0.1 - It works and creates stuff with no parameters and is cardcoded
+    Version 1.0.2 - Added the ability to utilize Parameters
+    Version 1.0.3 - Added verbosity to show each step as it goes along and some error checking. 
+
 #>
+
 
 param(
     [parameter(Mandatory = $true)]
