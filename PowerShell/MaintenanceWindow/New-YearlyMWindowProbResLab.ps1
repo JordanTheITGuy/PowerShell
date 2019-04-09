@@ -20,7 +20,7 @@
 ################################# Variables ################################################
 $SiteCode = "$(((Get-WmiObject -namespace "root\sms" -class "__Namespace").Name).substring(8-3))"
 $CollectionNameStructure = "MAINT - Server - PROD*"
-$MWName = "NAT Patching"
+$MWName = "Patching"
 $MWDescription = "Patching Window"
 $MWDuration = 4
 $StartMinute = 0
@@ -213,7 +213,7 @@ Function Get-PatchWindowTime
 }
 #endregion
 #region Get-PatchStartDay -DayType $Arg 
-Function Get-PatchWindowType
+Function Get-PatchWindowDate
 {
     [cmdletbinding()]
     Param
@@ -221,7 +221,6 @@ Function Get-PatchWindowType
         [Parameter(Mandatory = $True)]
         $DayType
     )
-        #Add days for Production day, Test days do not need added.
     [int]$WinType = 0
     $DaysAdded = $WinType + $DaysAfter
     Return $DaysAdded
@@ -252,7 +251,7 @@ Function start-WindowCreation{
         $MWDescription = $Day + " " + $WindowInfo[1]
 
         # Function call to determine patch day only
-        $TotalDaysAdded = Get-PatchWindowType -DayType $Collection.name.split(" - ")[6].substring(0,4)
+        $TotalDaysAdded = Get-PatchWindowDate -DayType $Collection.name.split(" - ")[6].substring(0,4)
 
         Write-Verbose -Message "$($Collection.Name) `
             Start Hour : $StartHour `
