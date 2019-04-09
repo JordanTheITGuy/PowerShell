@@ -99,6 +99,7 @@ ForEach($CollectionName in $FullList)
         try{
         #Create the collection
         Write-Verbose -Message "Now creating $($collectionName)" -Verbose
+        #Change the below information to change information about the collection. 
         $Object = New-CMCollection -collectionType Device -Name $CollectionName -LimitingCollectionId $LimitingCollectionID -RefreshSchedule $Schedule -RefreshType Periodic
         #Move the collection to its final destination.
         Move-CMObject -FolderPath $FolderPath -InputObject $Object
