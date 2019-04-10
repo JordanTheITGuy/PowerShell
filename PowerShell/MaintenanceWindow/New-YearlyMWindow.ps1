@@ -15,6 +15,11 @@
     Contact:     @JordanTheItGuy
     Created:     2018-12-13
     Updated:     2019-04-08
+
+    1.0.0 - (2018-12-13) Original Written version Mike Hiser/Jordan Benzing
+    1.0.1 - (2019-04-08) Updated with custom variables at the start of the script and dynamic discover of the site server
+    1.0.2 - (2019-04-09) Updated to dynamically figure out the number of days/Patch ranges to do the offset math
+    1.0.3 - (2019-04-09) Updated to include version history
 #>
 
 ################################# Variables ################################################
