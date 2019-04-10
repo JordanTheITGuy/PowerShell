@@ -18,6 +18,8 @@
     Updated:     2019-04-09
 
     Version 1.0.1 - It works and removes maintenance windows.
+    Version 1.0.2 - Added Parameter for Collection Naming Standard so it can be used with OTHER collection structures
+                - adjusted some of the verbose statements from the hardcoded original version to be more precise
 
 #>
 
@@ -160,18 +162,18 @@ if(!(Test-ConfigMgrAvailable -Remediate:$true -Verbose)){
 }
 
 Write-Verbose -Message "Now getting Collection list" -Verbose
-$Collections = Get-CMCollection -Name "MAINT - Server - D*"
+$Collections = Get-CMCollection -Name $CollectionNamingStandard
 Write-Verbose -Message "Succesfully retrieved Collections" -Verbose
 Write-Verbose -Message "Now cleaning Maintenance Windows pardon our dust..." -Verbose
 foreach($Collection in $Collections)
     {
-        Write-Verbose -Message "Retrieving maintenacne windows names" -Verbose
+        Write-Verbose -Message "Retrieving maintenance windows from $($Collection.Name)" -Verbose
         $MaintenanceWindows = Get-CMMaintenanceWindow -CollectionName $Collection.Name
         foreach($MaintenanceWindow in $MaintenanceWindows)
             {
                 Write-Verbose "Removing Maintenance window $($MaintenanceWindow.Name) from collection $($Collection.Name)" -Verbose
                 Remove-CMMaintenanceWindow -CollectionName $Collection.Name -MaintenanceWindowName $MaintenanceWindow.Name -Force
-                Write-Verbose "Successfully removed the MW for production collections" -Verbose
+                Write-Verbose "Removing Maintenance window $($MaintenanceWindow.Name) from collection $($Collection.Name)" -Verbose
             }
     }
 Set-Location -Path $StartingLocation.Path
