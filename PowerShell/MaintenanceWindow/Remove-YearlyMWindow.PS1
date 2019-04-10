@@ -20,6 +20,7 @@
     Version 1.0.1 - It works and removes maintenance windows.
     Version 1.0.2 - Added Parameter for Collection Naming Standard so it can be used with OTHER collection structures
                 - adjusted some of the verbose statements from the hardcoded original version to be more precise
+    Version 1.0.3 (2019-04-09) - Adjusted verbose statement to be more accurate
 
 #>
 
@@ -173,7 +174,7 @@ foreach($Collection in $Collections)
             {
                 Write-Verbose "Removing Maintenance window $($MaintenanceWindow.Name) from collection $($Collection.Name)" -Verbose
                 Remove-CMMaintenanceWindow -CollectionName $Collection.Name -MaintenanceWindowName $MaintenanceWindow.Name -Force
-                Write-Verbose "Removing Maintenance window $($MaintenanceWindow.Name) from collection $($Collection.Name)" -Verbose
+                Write-Verbose "SUCCESFULLY Removed Maintenance window $($MaintenanceWindow.Name) from collection $($Collection.Name)" -Verbose
             }
     }
 Set-Location -Path $StartingLocation.Path
