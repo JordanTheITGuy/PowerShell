@@ -19,7 +19,7 @@
 
 ################################# Variables ################################################
 $SiteCode = "$(((Get-WmiObject -namespace "root\sms" -class "__Namespace").Name).substring(8-3))"
-$CollectionNameStructure = "MAINT - Server - PROD*"
+$CollectionNameStructure = "MAINT - Server - D*"
 $MWName = "Patching"
 $MWDescription = "Patching Window"
 $MWDuration = 4
@@ -231,28 +231,24 @@ Function Get-PatchWindowDate
 Function start-WindowCreation{
     [cmdletbinding()]
     param()
-    Test-Module -ModuleName ConfigurationManager -Remediate:$true -Verbose
-    Test-ConfigMgrAvailable -Remediate:$true -Verbose
+    $Test1 = Test-Module -ModuleName ConfigurationManager -Remediate:$true -Verbose
+    $Test2 = Test-ConfigMgrAvailable -Remediate:$true -Verbose
     $MWCollections = Get-CMDeviceCollection -Name $CollectionNameStructure | Select-Object name,collectionid
     Set-Location -Path $(Split-Path $script:MyInvocation.MyCommand.Path)
     Foreach ($Collection in $MWCollections) {
-        Write-Verbose -Message "Processing $($Collection.name)..." -Verbose
-        If ($($Collection.name.split(" - ")[6]).length -eq 8){
-            $Day = $Collection.name.split(" - ")[6].substring(4,2)
-            $Window = $($Collection.Name.split(" - "))[6].substring(5)
+        $MWString = $Collection.Name.Split(" - ")[($($Collection.Name.Split(" - ")).length)-1]
+        $CharPosition = New-Object System.Collections.ArrayList($null)
+        foreach($char in [char[]]$MWString){
+        if($Char -match "[a-z]"){
+            $CharPosition.Add($MWString.IndexOf($Char)) | Out-Null
+            }
         }
-        else{
-            $Day = $Collection.name.split(" - ")[6].substring(4,1)
-            $Window = $($Collection.Name.split(" - "))[6].substring(5)
-        }
+        $TotalDaysAdded = $MWString.Substring($($CharPosition[0] +1), $($CharPosition[1] - 1))
+        $Window = $MWString.Substring($($CharPosition[1]))
         # Function call to determine patch window only
         $WindowInfo = Get-PatchWindowTime -Window $Window
         $StartHour = $WindowInfo[0]
         $MWDescription = $Day + " " + $WindowInfo[1]
-
-        # Function call to determine patch day only
-        $TotalDaysAdded = Get-PatchWindowDate -DayType $Collection.name.split(" - ")[6].substring(0,4)
-
         Write-Verbose -Message "$($Collection.Name) `
             Start Hour : $StartHour `
             End Hour   : $([int]$StartHour + [int]$MWDuration)
