@@ -22,7 +22,10 @@
     1.0.3 - (2019-04-09) Updated to include version history
     1.0.4 - (2019-04-09) Updated the ConfigMgr Helper Function remove extra 'verbose' stuff
                          Updated the logic of the running function to remove extra/duplicate checks for the configmgr module
-    1.0.5 - (2019-04-09) Updated the script to include a parameter option to specify the year and an offset from patch tuesday. 
+    1.0.5 - (2019-04-09) Updated the script to include a parameter option to specify the year and an offset from patch tuesday.
+    1.0.6 - (2019-04-09) Removed the parameter from the MW creation function to utilize the already sent variable with a default of 0 if none is selected.
+                         NOTE - Offset is always calculated from the day AFTER patch tuesday 0 = Patch Wednesday
+
 #>
 
 param(
@@ -247,10 +250,8 @@ Function Get-PatchWindowDate
 #Gather specific collections for processing with the MW script
 Function start-WindowCreation{
     [cmdletbinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [int]$OffsetPatchTuesday
-    )
+    param()
+
     if(!(Test-ConfigMgrAvailable -Remediate:$true -Verbose)){
         Write-Error -Message "Soemthing went wrong with the helper functions review verbose messages"
         break
@@ -266,6 +267,7 @@ Function start-WindowCreation{
             }
         }
         $TotalDaysAdded = $MWString.Substring($($CharPosition[0] +1), $($CharPosition[1] - 1))
+        $TotalDaysAdded = [int]$TotalDaysAdded + [int]$PatchTuesdayOffsetDays
         $Window = $MWString.Substring($($CharPosition[1]))
         # Function call to determine patch window only
         $WindowInfo = Get-PatchWindowTime -Window $Window
