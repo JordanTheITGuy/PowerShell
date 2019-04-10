@@ -25,6 +25,9 @@
     1.0.5 - (2019-04-09) Updated the script to include a parameter option to specify the year and an offset from patch tuesday.
     1.0.6 - (2019-04-09) Removed the parameter from the MW creation function to utilize the already sent variable with a default of 0 if none is selected.
                          NOTE - Offset is always calculated from the day AFTER patch tuesday 0 = Patch Wednesday
+    1.0.7 - (2019-04-09) Added parameter for CollectionName Structure
+                        NOTE - DONT CHANGE THIS IF YOU USED THE DEFAULT CREATE-MAINTENANCECOLLECTIONS.PS1 SCRIPT
+                        
 
 #>
 
@@ -32,12 +35,14 @@ param(
     [Parameter()]
     [string]$PatchTuesdayOffsetDays = 0,
     [Parameter(Mandatory=$true)]
-    $Year
+    $Year,
+    [Parameter()]
+    $CollectionNameStructure = "MAINT - Server - D*",
+    [Parameter()]
+    $SiteCode = "$(((Get-WmiObject -namespace "root\sms" -class "__Namespace").Name).substring(8-3))"
 )
 
 ################################# Variables ################################################
-$SiteCode = "$(((Get-WmiObject -namespace "root\sms" -class "__Namespace").Name).substring(8-3))"
-$CollectionNameStructure = "MAINT - Server - D*"
 $MWName = "Patching"
 $MWDescription = "Patching Window"
 $MWDuration = 4
