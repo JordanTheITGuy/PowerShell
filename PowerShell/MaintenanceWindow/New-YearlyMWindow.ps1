@@ -20,6 +20,8 @@
     1.0.1 - (2019-04-08) Updated with custom variables at the start of the script and dynamic discover of the site server
     1.0.2 - (2019-04-09) Updated to dynamically figure out the number of days/Patch ranges to do the offset math
     1.0.3 - (2019-04-09) Updated to include version history
+    1.0.4 - (2019-04-09) Updated the ConfigMgr Helper Function remove extra 'verbose' stuff
+                         Updated the logic of the running function to remove extra/duplicate checks for the configmgr module
 #>
 
 ################################# Variables ################################################
@@ -70,13 +72,16 @@ function Test-ConfigMgrAvailable
             }
             write-Verbose "ConfigurationManager Module is loaded"
             Write-Verbose "Checking if current drive is a CMDrive"
-            if((Get-location).Path -ne (Get-location -PSProvider 'CmSite').Path)
+            if((Get-location -Verbose:$false).Path -ne (Get-location -PSProvider 'CmSite' -Verbose:$false).Path)
             #Checks if the current location is the - PS provider for the CMSite server. 
             {
+                Write-Verbose -Message "The location is NOT currently the CMDrive"
                 if($Remediate)
                 #If the remediation field is set then it attempts to set the current location of the path to the CMSite server path. 
                     {
-                        Set-Location -Path (((Get-PSDrive -PSProvider CMSite).Name) + ":")
+                        Write-Verbose -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
+                        Set-Location -Path (((Get-PSDrive -PSProvider CMSite -Verbose:$false).Name) + ":") -Verbose:$false
+                        Write-Verbose -Message "Succesfully connected to the CMDrive"
                         #Sets the location properly to the PSDrive.
                     }
 
@@ -236,8 +241,11 @@ Function Get-PatchWindowDate
 Function start-WindowCreation{
     [cmdletbinding()]
     param()
-    $Test1 = Test-Module -ModuleName ConfigurationManager -Remediate:$true -Verbose
-    $Test2 = Test-ConfigMgrAvailable -Remediate:$true -Verbose
+    if(!(Test-ConfigMgrAvailable -Remediate:$true -Verbose)){
+        Write-Error -Message "Soemthing went wrong with the helper functions review verbose messages"
+        break
+    }
+
     $MWCollections = Get-CMDeviceCollection -Name $CollectionNameStructure | Select-Object name,collectionid
     Set-Location -Path $(Split-Path $script:MyInvocation.MyCommand.Path)
     Foreach ($Collection in $MWCollections) {
