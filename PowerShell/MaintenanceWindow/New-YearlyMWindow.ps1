@@ -22,7 +22,15 @@
     1.0.3 - (2019-04-09) Updated to include version history
     1.0.4 - (2019-04-09) Updated the ConfigMgr Helper Function remove extra 'verbose' stuff
                          Updated the logic of the running function to remove extra/duplicate checks for the configmgr module
+    1.0.5 - (2019-04-09) Updated the script to include a parameter option to specify the year and an offset from patch tuesday. 
 #>
+
+param(
+    [Parameter()]
+    [string]$PatchTuesdayOffsetDays = 0,
+    [Parameter(Mandatory=$true)]
+    $Year
+)
 
 ################################# Variables ################################################
 $SiteCode = "$(((Get-WmiObject -namespace "root\sms" -class "__Namespace").Name).substring(8-3))"
@@ -32,7 +40,6 @@ $MWDescription = "Patching Window"
 $MWDuration = 4
 $StartMinute = 0
 $MinuteDuration = 0
-$Year = 2019
 ############################################################################################
 #region HelperFunctions
 function Get-CMModule
@@ -240,12 +247,14 @@ Function Get-PatchWindowDate
 #Gather specific collections for processing with the MW script
 Function start-WindowCreation{
     [cmdletbinding()]
-    param()
+    param(
+        [Parameter(Mandatory = $false)]
+        [int]$OffsetPatchTuesday
+    )
     if(!(Test-ConfigMgrAvailable -Remediate:$true -Verbose)){
         Write-Error -Message "Soemthing went wrong with the helper functions review verbose messages"
         break
     }
-
     $MWCollections = Get-CMDeviceCollection -Name $CollectionNameStructure | Select-Object name,collectionid
     Set-Location -Path $(Split-Path $script:MyInvocation.MyCommand.Path)
     Foreach ($Collection in $MWCollections) {
