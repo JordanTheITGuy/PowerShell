@@ -10,7 +10,7 @@ function Write-TsxOutPut{
         without using the write-host prompt.
     
     .NOTES
-            FileName:    New-YearlyMWindow.PS1
+            FileName:    Write-TsxOutput.PS1
             Author:      Jordan Benzing
             Contact:     @JordanTheItGuy
             Created:     2019-04-11
