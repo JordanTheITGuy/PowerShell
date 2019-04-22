@@ -1,9 +1,13 @@
 <#
 .SYNOPSIS
+    Function to determin if the current running user is an administrator    
 
 .DESCRIPTION
+    Function script that determines if the current running user is or is not an administrator. This can be copy pasted into other scripted
+    This script can also be loaded via Dot Sourcing. 
 
 .LINK
+    https://github.com/JordanTheITGuy/ProblemResolution/tree/master/PowerShell/Functions
 
 .NOTES
           FileName: Test-RunAsAdmin.ps1
@@ -19,6 +23,9 @@
                
 
 .Example
+    . .\Test-RunAsAdmin.Ps1
+    C:\> Test-RunAsAdmin
+    False
 
 #>
 function Test-RunAsAdmin{
