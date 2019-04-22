@@ -12,12 +12,11 @@
           Created: 2019-04-22
           Modified: 2019-04-22
 
-          Version - 0.0.0 - (2019-04-22)
-
+          Version - 0.0.0 - (2019-04-22) - Script/Function works as intended.
 
           TODO:
-               [ ] Script Main Goal
-               [ ] Script Secondary Goal
+               [X] Check if current user is running in Admin Context
+               
 
 .Example
 
