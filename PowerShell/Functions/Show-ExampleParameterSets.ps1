@@ -26,3 +26,7 @@ elseif (($YourName) -and (!($SocialMedia)))
 {
     Write-Output $("You only put your name in $YourName")    
 }
+elseif(!($SocialMedia) -and !($YourName))
+{
+    Write-Output $("You didn't put anything in that makes me a sad panda :(" )
+}
