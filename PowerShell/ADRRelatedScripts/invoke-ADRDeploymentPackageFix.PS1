@@ -1,14 +1,22 @@
 <#
 .SYNOPSIS
 This script is for using when you have set the 'No deployment package' setting in ConfigMgr ADRS - and cannot uncheck the box in
+
 .EXAMPLE
     .\invoke-ADRDeploymentPackage.ps1 -SiteCode PR1 -ADRName "Example"  -Verbose -PackageID "PR10000D"
+
 .NOTES
     FileName:    invoke-ADRDeploymentPackageFix.ps1
     Author:      Jordan Benzing
     Contact:     @JordanTheItGuy
     Created:     2019-01-18
     Updated:     2019-01-18
+
+    MIT - License:
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
     Version history:
     1.0.0 - (2019-01-18) Script created
 #>
