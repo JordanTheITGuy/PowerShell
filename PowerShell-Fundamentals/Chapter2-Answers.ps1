@@ -157,6 +157,21 @@ $EndingString = "$($StartingString.Substring(0,13))$($StartingString.Substring($
 #Solution 2
 $EndingString = "$($StartingString.Substring(0,13)) blue$($StartingString.Substring(17,16))grey"
 
+#Solution 3
+$StartingString = "The house is grey and the sky is blue"
+$EndingString = $StartingString.Replace("grey","1")
+$EndingString = $EndingString.Replace("blue","2")
+$EndingString = $EndingString.Replace("1","blue")
+$EndingString = $EndingString.Replace("2","grey")
+
+#Solution 4
+"$($($StartingString.Substring(0,17)).Replace("grey","blue"))$($($StartingString.Substring(17)).Replace("blue","grey"))"
+
+
+
+
+
+
 #endregion Exercise 2.8.4
 ##################################################################
 
