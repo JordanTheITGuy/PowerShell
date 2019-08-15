@@ -10,7 +10,8 @@
     that is missing the blocker file to the drive of your choosing.
 
 .LINK
-    
+    https://github.com/JordanTheITGuy/PowerShell/tree/master/BlogPosts/HowTo%20-%20Find%20All%20DPS%20Missing%20NO_SMS_ON_DRIVE
+
 .NOTES
           FileName: Invoke-ContentMigration.PS1
           Author: Jordan Benzing
@@ -21,10 +22,33 @@
           Version - 0.0.1 - (2019-08-15)
 
           Shortcut for the Default Server Tools Path $(split-path(Split-Path(split-path $env:SMS_ADMIN_UI_PATH)))\tools\ServerTools
-\\PROBRESCM01\C$\Prgram
+
 
 .EXAMPLE
+    Example of code run to just check all distribution points that are missing the NO_SMS_ON_DRIVE on C:\
+    .\Invoke-ContentMigration.PS1 -SiteCode PR1 -ConfigMgrServer PROBRESCM01 -SourceDrive C
+    
+.EXAMPLE 
+    EXAMPLE of code run to check for all distribution points that are missing NO_SMS_ON_DRIVE on C:\ and if missing it migrate it to the E drive.
+    .\Invoke-ContentMigration.PS1 -SiteCode PR1 -ConfigMgrServer PROBRESCM01 -SourceDrive C -MigrateContent -ServerToolsPath "\\Probrescm01\c$\Program Files\Microsoft Configuration Manager\tools\ServerTools" -DestinationDrive E
 
+.PARAMETER SITECODE
+    This parameter is for entering the site code of your Configuration Manager server. This allows you to run the script from a device that is not your primary.
+
+.PARAMETER ConfigMgrServer
+    This parameter is for entering the site server that you want to get all the distribution points for and correct. 
+
+.PARAMETER ServerToolsPath 
+    This parameter is for entering the location of the ServerTools directory. It is copied to the SOURCE drive where you are moving your content library AWAY from
+
+.PARAMETER SourceDrive
+    This paremeter specified the source drive letter. DO NOT use a colon symbol or it will fail. 
+
+.PARAMETER DestinationDrive
+    This paremeter specified the destination drive letter. DO NOT use a colon symbol or it will fail. 
+
+.PARAMETER MigrateContent
+    This parameter is a switch that in enables the migration aspect of the script. Without this switch the content will not be migrated just reported on if the NO_SMS_ON_DRIVE is missing. 
 #>
 
 [cmdletbinding(DefaultParameterSetName="None")]
