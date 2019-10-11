@@ -154,6 +154,119 @@ function Test-Module
     }
 }
 #endregion helperfunctions
+function Set-ADGroupChoice{
+    [cmdletbinding()]
+    param(
+        [Parameter(HelpMessage = "GroupList Array from finding multiple groups. ")]
+        [array]$GroupList
+    )
+    $GroupPicker = New-Object System.Windows.Forms.Form
+    $GroupPicker.Text = 'Select an AD Group'
+    $GroupPicker.Icon = "$(split-path $script:MyInvocation.MyCommand.Path)\SCConfigMgrLogo-Square.ico"
+    $GroupPicker.Size = New-Object System.Drawing.Size(300,200)
+    $GroupPicker.StartPosition = 'CenterScreen'
+
+    $OKButton = New-Object System.Windows.Forms.Button
+    $OKButton.Location = New-Object System.Drawing.Point(75,120)
+    $OKButton.Size = New-Object System.Drawing.Size(75,23)
+    $OKButton.Text = 'OK'
+    $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $GroupPicker.AcceptButton = $OKButton
+    $GroupPicker.Controls.Add($OKButton)
+
+    $CancelButton = New-Object System.Windows.Forms.Button
+    $CancelButton.Location = New-Object System.Drawing.Point(150,120)
+    $CancelButton.Size = New-Object System.Drawing.Size(75,23)
+    $CancelButton.Text = 'Cancel'
+    $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $GroupPicker.CancelButton = $CancelButton
+    $GroupPicker.Controls.Add($CancelButton)
+
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.Text = 'Please select a Group'
+    $GroupPicker.Controls.Add($label)
+
+    $listBox = New-Object System.Windows.Forms.ListBox
+    $listBox.Location = New-Object System.Drawing.Point(10,40)
+    $listBox.Size = New-Object System.Drawing.Size(260,20)
+    $listBox.Height = 80
+
+    foreach($Group in $GroupList){
+    [void] $listBox.Items.Add($Group.UsergroupName)
+    }
+   $GroupPicker.Controls.Add($listBox)
+
+   $GroupPicker.Topmost = $true
+
+    $result =$GroupPicker.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    {
+        $x = $listBox.SelectedItem
+        $X = $GroupList | Where-Object {$_.UsergroupName -eq $x}      
+        return $X
+    }
+}
+
+function Set-CollectionChoice{
+    [cmdletbinding()]
+    param(
+        [Parameter(HelpMessage = "Collection List Array from finding multiple groups. ")]
+        [array]$CollectionList
+    )
+    $CollectionPicker = New-Object System.Windows.Forms.Form
+    $CollectionPicker.Text = 'Select A CM Collection'
+    $CollectionPicker.Icon = "$(split-path $script:MyInvocation.MyCommand.Path)\SCConfigMgrLogo-Square.ico"
+    $CollectionPicker.Size = New-Object System.Drawing.Size(300,200)
+    $CollectionPicker.StartPosition = 'CenterScreen'
+
+    $OKButton = New-Object System.Windows.Forms.Button
+    $OKButton.Location = New-Object System.Drawing.Point(75,120)
+    $OKButton.Size = New-Object System.Drawing.Size(75,23)
+    $OKButton.Text = 'OK'
+    $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $CollectionPicker.AcceptButton = $OKButton
+    $CollectionPicker.Controls.Add($OKButton)
+
+    $CancelButton = New-Object System.Windows.Forms.Button
+    $CancelButton.Location = New-Object System.Drawing.Point(150,120)
+    $CancelButton.Size = New-Object System.Drawing.Size(75,23)
+    $CancelButton.Text = 'Cancel'
+    $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $CollectionPicker.CancelButton = $CancelButton
+    $CollectionPicker.Controls.Add($CancelButton)
+
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.Text = 'Please select a Collection'
+    $CollectionPicker.Controls.Add($label)
+
+    $listBox = New-Object System.Windows.Forms.ListBox
+    $listBox.Location = New-Object System.Drawing.Point(10,40)
+    $listBox.Size = New-Object System.Drawing.Size(260,20)
+    $listBox.Height = 80
+
+    foreach($Collection in $CollectionList){
+    [void] $listBox.Items.Add($Collection.Name)
+    }
+   $CollectionPicker.Controls.Add($listBox)
+
+   $CollectionPicker.Topmost = $true
+
+    $result =$CollectionPicker.ShowDialog()
+
+    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    {
+        $x = $listBox.SelectedItem
+        $X = $CollectionList | Where-Object {$_.Name -eq $x}      
+        return $X
+    }
+}
+
+
 
 function Get-Information{
     [cmdletbinding()]
@@ -208,7 +321,7 @@ function Get-Information{
             $GroupLabel = New-Object System.Windows.Forms.Label
             $GroupLabel.Location = New-Object System.Drawing.Size(10,20) 
             $GroupLabel.Size = New-Object System.Drawing.Size(315,20) 
-            $GroupLabel.Text = "Enter The Group Name - Supports '%' as wildcard"
+            $GroupLabel.Text = "Enter The Group Name - Supports wildcards"
             $GroupLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $objForm.Controls.Add($GroupLabel) 
         
@@ -229,9 +342,20 @@ function Get-Information{
                 if(Test-ConfigMgrAvailable -Remediate:$True){
                     $StartingLocation = $(Get-Location).Path
                     if($SiteCodeTextBox.Text -eq $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name){
-                        $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName like '$($GroupTextBox.Text)'"
-                        if($ADGroup){
+                        $ADGroup = $GroupTextBox.Text
+                        if($ADGroup.Length -gt '0'){
+                            if($ADGroup.Substring($ADGroup.Length -1) -eq "*"){
+                                $ADGroup = "$($ADGroup.Substring(0,$ADGroup.Length-1))%"
+                            }
+                        }
+                        $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName like '$($ADGroup)'"
+                        if(($ADGroup | Measure-Object).Count -eq 1){
                             $GroupTextBox.Text = $ADGroup.UserGroupName
+                            $GroupTextBox.Update()
+                        }
+                        elseif(($ADGroup | Measure-Object).Count -gt 1){
+                            $GroupName =  Set-ADGroupChoice -GroupList $ADGroup
+                            $GroupTextBox.Text = $GroupName.UsergroupName
                             $GroupTextBox.Update()
                         }
                         Else{
@@ -269,7 +393,7 @@ function Get-Information{
             $ColNameLabel.Location = New-Object System.Drawing.Size(145,70) 
             $ColNameLabel.Size = New-Object System.Drawing.Size(200,20) 
             $ColNameLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $ColNameLabel.Text = "Collection Name Supports * Wildcard"
+            $ColNameLabel.Text = "Collection Name - Supports Wildcards"
             $objForm.Controls.Add($ColNameLabel)
 
             $ColNameTextBox = New-Object System.Windows.Forms.TextBox
@@ -301,10 +425,11 @@ function Get-Information{
                                 $ColNameTextBox.Update()
                             }
                             elseif (($CollInfo | Measure-Object).Count -gt 1) {
-                                $CollectionIDTextBOX.Text = "MULTIPLE RESULTS FOUND"
-                                $ColNameTextBox.Text = "MULTIPLE RESULTS FOUND"
+                                $CollectionPicked = Set-CollectionChoice -CollectionList $CollInfo
+                                $CollectionIDTextBOX.Text = $CollectionPicked.collectionID
+                                $ColNameTextBox.Text = $CollectionPicked.Name
                                 $CollectionIDTextBOX.Update()
-                                $ColNameTextBox.Update()                                
+                                $ColNameTextBox.Update()                                    
                             }
                             elseif (($CollInfo | Measure-Object).Count -eq 0) {
                                 $CollectionIDTextBOX.Text = "NO RESULTS FOUND"
@@ -319,6 +444,9 @@ function Get-Information{
                     }
                     if($ColName){
                         try{
+                            if($ColName.Substring($ColName.Length -1) -eq "%"){
+                                $ColName = "$($ColName.Substring(0,$ColName.Length-1))*"
+                            }
                             $CollInfo = Get-CMDeviceCollection -Name $ColName -ErrorAction Stop | select-object Name,collectionID
                             if($($CollInfo | Measure-Object).Count -eq 1){
                                 $CollectionIDTextBOX.Text = $CollInfo.collectionID
@@ -327,8 +455,9 @@ function Get-Information{
                                 $ColNameTextBox.Update()
                             }
                             elseif (($CollInfo | Measure-Object).Count -gt 1) {
-                                $CollectionIDTextBOX.Text = "MULTIPLE RESULTS FOUND"
-                                $ColNameTextBox.Text = "MULTIPLE RESULTS FOUND"
+                                $CollectionPicked = Set-CollectionChoice -CollectionList $CollInfo
+                                $CollectionIDTextBOX.Text = $CollectionPicked.collectionID
+                                $ColNameTextBox.Text = $CollectionPicked.Name
                                 $CollectionIDTextBOX.Update()
                                 $ColNameTextBox.Update()                                
                             }
@@ -400,7 +529,11 @@ function Get-Information{
            $SiteCodeTextBox.Size = New-Object System.Drawing.Size(315,20) 
            $SiteCodeTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
            $SiteCodeTextBox.AutoSize = $True
-           $SiteCodeTextBox.Text = ""
+           if(Test-ConfigMgrAvailable -Remediate:$True){
+                $StartingLocation = $(Get-Location).Path
+                $CMSiteCode = $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name
+           }
+           $SiteCodeTextBox.Text = "$CMSiteCode"
            $objForm.Controls.Add($SiteCodeTextBox)
         
             $objForm.Topmost = $True
