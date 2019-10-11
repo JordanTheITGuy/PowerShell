@@ -158,10 +158,6 @@ function Test-Module
 function Get-Information{
     [cmdletbinding()]
     param(
-        [Parameter(HelpMessage = "This parameter specifies the AD Group name to use")]
-        [string]$GroupName,
-        [Parameter(HelpMessage = "This parameter specifies the collectionID to add the group to")]
-        [string]$CollectionID
     )
     begin{
         Add-Type -AssemblyName System.Drawing
@@ -169,7 +165,7 @@ function Get-Information{
     }
     process{
             $objForm = New-Object System.Windows.Forms.Form 
-            $objForm.Text = "SCConfigMgr - Add AD Group To Collection"
+            $objForm.Text = "SCConfigMgr - Add AD Group Query Rule To Collection"
             $objForm.Icon = "$(split-path $script:MyInvocation.MyCommand.Path)\SCConfigMgrLogo-Square.ico"
             $objForm.BackColor = [System.Drawing.Color]::LightGray
             $objForm.Size = New-Object System.Drawing.Size(480,300) 
@@ -188,7 +184,11 @@ function Get-Information{
             $OKButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $OKButton.Size = New-Object System.Drawing.Size(75,23)
             $OKButton.Text = "OK"
-            $OKButton.Add_Click({$objForm.Close()})
+            $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $objForm.AcceptButton = $OKButton
+            $OKButton.Add_Click({
+                $objForm.Close()
+            })
             $objForm.Controls.Add($OKButton)
             
             #Cancel Button
@@ -197,8 +197,10 @@ function Get-Information{
             $CancelButton.Size = New-Object System.Drawing.Size(75,23)
             $CancelButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
             $CancelButton.Text = "Cancel"
+            $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+            $CancelButton = $CancelButton
             $CancelButton.Add_Click({
-                 $objForm.Close()
+                $objForm.Close()
              })
             $objForm.Controls.Add($CancelButton)
                   
@@ -206,7 +208,7 @@ function Get-Information{
             $GroupLabel = New-Object System.Windows.Forms.Label
             $GroupLabel.Location = New-Object System.Drawing.Size(10,20) 
             $GroupLabel.Size = New-Object System.Drawing.Size(315,20) 
-            $GroupLabel.Text = "Enter The Group Name"
+            $GroupLabel.Text = "Enter The Group Name - Supports '%' as wildcard"
             $GroupLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $objForm.Controls.Add($GroupLabel) 
         
@@ -214,32 +216,182 @@ function Get-Information{
             $GroupTextBox.Location = New-Object System.Drawing.Size(10,40) 
             $GroupTextBox.Size = New-Object System.Drawing.Size(315,20)
             $GroupTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $GroupTextBox.Text = "GROUP-NAME-O1"
-            $objForm.Controls.Add($GroupTextBox) 
-        
+            $GroupTextBox.Text = ""
+            $objForm.Controls.Add($GroupTextBox)
+            
+            ###AD Group Search###
+            $SearchADButton = New-Object System.Windows.Forms.Button
+            $SearchADButton.Location = New-Object System.Drawing.Size(375,40)
+            $SearchADButton.Size = New-Object System.Drawing.Size(75,23)
+            $SearchADButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+            $SearchADButton.Text = "Search"
+            $SearchADButton.Add_Click({                
+                if(Test-ConfigMgrAvailable -Remediate:$True){
+                    $StartingLocation = $(Get-Location).Path
+                    if($SiteCodeTextBox.Text -eq $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name){
+                        $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName like '$($GroupTextBox.Text)'"
+                        if($ADGroup){
+                            $GroupTextBox.Text = $ADGroup.UserGroupName
+                            $GroupTextBox.Update()
+                        }
+                        Else{
+                            $GroupTextBox.Text = "GROUP NOT FOUND"
+                        }
+                    }
+                    else{
+                        $GroupTextBox.Text = "MUST supply site code search ConfigMGr for group"
+                        $GroupTextBox.Update()
+                    }
+                }
+                Set-location $StartingLocation
+            })
+            $objForm.Controls.Add($SearchADButton)
+
             ###Collection ID Information###
             $CollectionLabel = New-Object System.Windows.Forms.Label
             $CollectionLabel.Location = New-Object System.Drawing.Size(10,70) 
-            $CollectionLabel.Size = New-Object System.Drawing.Size(315,20) 
+            $CollectionLabel.Size = New-Object System.Drawing.Size(135,20) 
             $CollectionLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $CollectionLabel.Text = "Specify the Collection ID"
+            $CollectionLabel.Text = "Enter Collection ID     OR"
             $objForm.Controls.Add($CollectionLabel)
         
-             
-            $CollectionTextBox = New-Object System.Windows.Forms.TextBox 
-            $CollectionTextBox.Location = New-Object System.Drawing.Size(10,90) 
-            $CollectionTextBox.Size = New-Object System.Drawing.Size(315,20) 
-            $CollectionTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $CollectionTextBox.AutoSize = $True
-            $CollectionTextBox.Text = "PR100023"
-            $objForm.Controls.Add($CollectionTextBox)
+            $CollectionIDTextBOX = New-Object System.Windows.Forms.TextBox 
+            $CollectionIDTextBOX.Location = New-Object System.Drawing.Size(10,90) 
+            $CollectionIDTextBOX.Size = New-Object System.Drawing.Size(120,20) 
+            $CollectionIDTextBOX.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+            $CollectionIDTextBOX.AutoSize = $True
+            $CollectionIDTextBOX.Text = ""
+            $objForm.Controls.Add($CollectionIDTextBOX)
         
+            ###Collection Name Info###
+
+            $ColNameLabel = New-Object System.Windows.Forms.Label
+            $ColNameLabel.Location = New-Object System.Drawing.Size(145,70) 
+            $ColNameLabel.Size = New-Object System.Drawing.Size(200,20) 
+            $ColNameLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+            $ColNameLabel.Text = "Collection Name Supports * Wildcard"
+            $objForm.Controls.Add($ColNameLabel)
+
+            $ColNameTextBox = New-Object System.Windows.Forms.TextBox
+            $ColNameTextBox.Location = New-Object System.Drawing.Size(150,90) 
+            $ColNameTextBox.Size = New-Object System.Drawing.Size(175,20)
+            $ColNameTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+            $ColNameTextBox.AutoSize = $True
+            $ColNameTextBox.Text = ""
+            $objForm.Controls.Add($ColNameTextBox)
+
+            ###Search Button###
+            $SearchCollButton = New-Object System.Windows.Forms.Button
+            $SearchCollButton.Location = New-Object System.Drawing.Size(375,90)
+            $SearchCollButton.Size = New-Object System.Drawing.Size(75,23)
+            $SearchCollButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+            $SearchCollButton.Text = "Search"
+            $SearchCollButton.Add_Click({
+                if(Test-ConfigMgrAvailable -Remediate:$True){
+                    $StartingLocation = $(Get-Location).Path
+                    $ColID = $CollectionIDTextBOX.Text
+                    $ColName = $ColNameTextBox.Text
+                    if($ColID){
+                        try{
+                            $CollInfo = Get-CMDeviceCollection -Id $ColID -ErrorAction Stop | select-object Name,collectionID
+                            if($($CollInfo | Measure-Object).Count -eq 1){
+                                $CollectionIDTextBOX.Text = $CollInfo.collectionID
+                                $ColNameTextBox.Text = $CollInfo.Name
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()
+                            }
+                            elseif (($CollInfo | Measure-Object).Count -gt 1) {
+                                $CollectionIDTextBOX.Text = "MULTIPLE RESULTS FOUND"
+                                $ColNameTextBox.Text = "MULTIPLE RESULTS FOUND"
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()                                
+                            }
+                            elseif (($CollInfo | Measure-Object).Count -eq 0) {
+                                $CollectionIDTextBOX.Text = "NO RESULTS FOUND"
+                                $ColNameTextBox.Text = "NO RESULTS FOUND"
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()                                
+                            }
+                        }
+                        catch{
+
+                        }
+                    }
+                    if($ColName){
+                        try{
+                            $CollInfo = Get-CMDeviceCollection -Name $ColName -ErrorAction Stop | select-object Name,collectionID
+                            if($($CollInfo | Measure-Object).Count -eq 1){
+                                $CollectionIDTextBOX.Text = $CollInfo.collectionID
+                                $ColNameTextBox.Text = $CollInfo.Name
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()
+                            }
+                            elseif (($CollInfo | Measure-Object).Count -gt 1) {
+                                $CollectionIDTextBOX.Text = "MULTIPLE RESULTS FOUND"
+                                $ColNameTextBox.Text = "MULTIPLE RESULTS FOUND"
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()                                
+                            }
+                            elseif (($CollInfo | Measure-Object).Count -eq 0) {
+                                $CollectionIDTextBOX.Text = "NO RESULTS FOUND"
+                                $ColNameTextBox.Text = "NO RESULTS FOUND"
+                                $CollectionIDTextBOX.Update()
+                                $ColNameTextBox.Update()                                
+                            }
+                        }
+                        catch{
+                            Write-Error -Message "Something has gone seriously wrong if you've managed this one" -ErrorAction Stop
+                            Break
+                        }
+                        
+                    }
+                    set-location $STartingLocation
+                }
+            })
+            $objForm.Controls.Add($SearchCollButton)
+
+             <#
+            #Validation 
+            $ValidateButton = New-Object System.Windows.Forms.Button
+            $ValidateButton.Location = New-Object System.Drawing.Size(375,90)
+            $ValidateButton.Size = New-Object System.Drawing.Size(75,23)
+            $ValidateButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+            $ValidateButton.Text = "Validate"
+            $ValidateButton.Add_Click({
+                if(Test-ConfigMgrAvailable -Remediate:$True){
+                    $StartingLocation = $(Get-Location).Path
+                    #Validate the Collection Name
+                    $Name = Get-CMDeviceCollection -Id $CollectionIDTextBOX.Text | Select-object -ExpandProperty Name
+                    if($Name){
+                        $ColNameTextBox.Text = $Name
+                        #Update The Collection Name
+                        $ColNameTextBox.Refresh()
+                    }
+                    else{
+                        $ColNameTextBox.Text = "COLLECTION NOT FOUND"
+                        $ColNameTextBox.Refresh()
+                    }
+                    #Validate the AD Group Exists in ConfigMgr
+                    $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName ='$($GroupTextBox.Text)'"
+                    if($ADGroup){
+                        $GroupTextBox.Text = $ADGroup.UserGroupName
+                        $GroupTextBox.Update()
+                    }
+                    Else{
+                        $GroupTextBox.Text = "GROUP NOT FOUND"
+                    }
+                    Set-location $StartingLocation
+                }
+             })
+            $objForm.Controls.Add($ValidateButton)
+            #>
+                  
             ###Site Server ID ###
             $SiteCodeLabel = New-Object System.Windows.Forms.Label
             $SiteCodeLabel.Location = New-Object System.Drawing.Size(10,120) 
             $SiteCodeLabel.Size = New-Object System.Drawing.Size(315,20) 
             $SiteCodeLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $SiteCodeLabel.Text = "Specify the Collection ID"
+            $SiteCodeLabel.Text = "Specify the Site Server ID"
             $objForm.Controls.Add($SiteCodeLabel)
         
              
@@ -248,21 +400,21 @@ function Get-Information{
            $SiteCodeTextBox.Size = New-Object System.Drawing.Size(315,20) 
            $SiteCodeTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
            $SiteCodeTextBox.AutoSize = $True
-           $SiteCodeTextBox.Text = "PR1"
+           $SiteCodeTextBox.Text = ""
            $objForm.Controls.Add($SiteCodeTextBox)
         
-
             $objForm.Topmost = $True
             $objForm.Add_Shown({$objForm.Activate()})
-            [void]$objForm.ShowDialog()
-        
+            $Result = $objForm.ShowDialog()
+            if($Result -eq [System.Windows.Forms.DialogResult]::OK){
             $Hash = @{
-                 GroupName = $GroupTextBox.Text
-                 collectionID = $CollectionTextBox.Text
-                 SiteCodeID = $SiteCodeTextBox.Text
+                GroupName = $GroupTextBox.Text
+                collectionID = $CollectionIDTextBOX.Text
+                SiteCodeID = $SiteCodeTextBox.Text
             }
             $Object = New-Object -TypeName psobject -Property $Hash
             return $Object
+            }
         }
 }
 
@@ -274,7 +426,7 @@ function New-ADGroupQuery{
         [parameter(Mandatory = $true)]
         [string]$CollectionID
         )
-$GroupName = "$((Get-ADForest).Name)\\$GroupName"
+$GroupName = "$((Get-ADDomain).Name)\\$GroupName"
 $Query = @"
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
@@ -285,6 +437,9 @@ process{
     $StartingLocation = $(Get-Location).Path
     if(Test-ConfigMgrAvailable -Remediate:$true){
     $Information = Get-Information
-    New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
+    if($Information){
+        #New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
+    }
+    Set-location $StartingLocation
     }
 }
