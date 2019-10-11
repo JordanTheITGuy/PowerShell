@@ -266,8 +266,49 @@ function Set-CollectionChoice{
     }
 }
 
+function import-Data{
+    [cmdletbinding()]
+    param(
+        [Parameter(HelpMessage = "The path to the CSV")]
+        [string]$CSVPath
+    )
 
+}
 
+function Get-GuiFilePath
+{
+         [cmdletbinding(DefaultParameterSetName = 'None')]
+         param(
+              [Parameter(HelpMessage ="Use this switch to identify the file type" , Mandatory=$true)]
+              [string]$FileType,
+              [Parameter(HelpMessage ="Use this switch to enable a message box explaining the prompt before hand." , Mandatory=$false , ParameterSetName = "MSGBOX")]
+              [switch]$EnableMsgBox,
+              [Parameter(HelpMessage ="This is the MESSAGE you would like to display before prompting for user input" , ParameterSetName = "MSGBOX" , Mandatory=$true)]
+              [string]$Message,
+              [Parameter(HelpMessage ="This is the message TITLE you would like to display before prompting for user input" , ParameterSetName= "MSGBOX" , Mandatory=$true )]
+              [string]$MessageTitle
+         )
+         Add-Type -AssemblyName System.Windows.Forms
+         Add-Type -AssemblyName Microsoft.VisualBasic
+         if($EnableMsgBox)
+         {
+          $msboxReturn = [Microsoft.VisualBasic.Interaction]::MsgBox("$($Message)", "OKCancel,SystemModal,DefaultButton1", "SCConfigMgr MSG")
+         }
+         if($msboxReturn -eq "Cancel")
+         {
+              
+         }
+         $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{
+              Filter = "$($FileType) FILE (*.$($FileType))|*.$($FileType)"}
+        $FileBrowser.InitialDirectory = $PSScriptRoot
+         $Result = $FileBrowser.ShowDialog()
+         if($Result -eq "Cancel"){
+              
+         }
+         
+         
+         return $FileBrowser
+}
 function Get-Information{
     [cmdletbinding()]
     param(
@@ -478,55 +519,19 @@ function Get-Information{
                 }
             })
             $objForm.Controls.Add($SearchCollButton)
-
-             <#
-            #Validation 
-            $ValidateButton = New-Object System.Windows.Forms.Button
-            $ValidateButton.Location = New-Object System.Drawing.Size(375,90)
-            $ValidateButton.Size = New-Object System.Drawing.Size(75,23)
-            $ValidateButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
-            $ValidateButton.Text = "Validate"
-            $ValidateButton.Add_Click({
-                if(Test-ConfigMgrAvailable -Remediate:$True){
-                    $StartingLocation = $(Get-Location).Path
-                    #Validate the Collection Name
-                    $Name = Get-CMDeviceCollection -Id $CollectionIDTextBOX.Text | Select-object -ExpandProperty Name
-                    if($Name){
-                        $ColNameTextBox.Text = $Name
-                        #Update The Collection Name
-                        $ColNameTextBox.Refresh()
-                    }
-                    else{
-                        $ColNameTextBox.Text = "COLLECTION NOT FOUND"
-                        $ColNameTextBox.Refresh()
-                    }
-                    #Validate the AD Group Exists in ConfigMgr
-                    $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName ='$($GroupTextBox.Text)'"
-                    if($ADGroup){
-                        $GroupTextBox.Text = $ADGroup.UserGroupName
-                        $GroupTextBox.Update()
-                    }
-                    Else{
-                        $GroupTextBox.Text = "GROUP NOT FOUND"
-                    }
-                    Set-location $StartingLocation
-                }
-             })
-            $objForm.Controls.Add($ValidateButton)
-            #>
                   
             ###Site Server ID ###
             $SiteCodeLabel = New-Object System.Windows.Forms.Label
             $SiteCodeLabel.Location = New-Object System.Drawing.Size(10,120) 
-            $SiteCodeLabel.Size = New-Object System.Drawing.Size(315,20) 
+            $SiteCodeLabel.Size = New-Object System.Drawing.Size(100,20) 
             $SiteCodeLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $SiteCodeLabel.Text = "Specify the Site Server ID"
+            $SiteCodeLabel.Text = "Site Server ID"
             $objForm.Controls.Add($SiteCodeLabel)
         
              
            $SiteCodeTextBox = New-Object System.Windows.Forms.TextBox 
            $SiteCodeTextBox.Location = New-Object System.Drawing.Size(10,140) 
-           $SiteCodeTextBox.Size = New-Object System.Drawing.Size(315,20) 
+           $SiteCodeTextBox.Size = New-Object System.Drawing.Size(120,20) 
            $SiteCodeTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
            $SiteCodeTextBox.AutoSize = $True
            if(Test-ConfigMgrAvailable -Remediate:$True){
@@ -535,6 +540,54 @@ function Get-Information{
            }
            $SiteCodeTextBox.Text = "$CMSiteCode"
            $objForm.Controls.Add($SiteCodeTextBox)
+
+            ###CSV Info###
+
+            $CSVLabel = New-Object System.Windows.Forms.Label
+            $CSVLabel.Location = New-Object System.Drawing.Size(150,120) 
+            $CSVLabel.Size = New-Object System.Drawing.Size(200,20) 
+            $CSVLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+            $CSVLabel.Text = "CSV Path"
+            $objForm.Controls.Add($CSVLabel)
+
+            $CSVTextBox = New-Object System.Windows.Forms.TextBox
+            $CSVTextBox.Location = New-Object System.Drawing.Size(150,140) 
+            $CSVTextBox.Size = New-Object System.Drawing.Size(175,20)
+            $CSVTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
+            $CSVTextBox.AutoSize = $True
+            $CSVTextBox.Text = ""
+            $objForm.Controls.Add($CSVTextBox)
+
+            ###Search CSV Button###
+            $SearchCSVButton = New-Object System.Windows.Forms.Button
+            $SearchCSVButton.Location = New-Object System.Drawing.Size(375,140)
+            $SearchCSVButton.Size = New-Object System.Drawing.Size(75,23)
+            $SearchCSVButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
+            $SearchCSVButton.Text = "Browse"
+            $SearchCSVButton.Add_Click({
+                $Info = Get-GuiFilePath -Message "Windows CSV" -MessageTitle "Windows CSV" -FileType "CSV"
+                If($Info.FileName -ne ""){
+                $CSVTextBox.Text = $Info.FileName
+                $CSVTextBox.Refresh()
+                $CSV = Import-Csv -Path $Info.FileName
+                if(Test-ConfigMgrAvailable -Remediate:$True){
+                    $StartingLocation = $(Get-Location).Path
+                    $CollectionID = Get-CMDeviceCollection -Name $CSV[0].CollectionName | Select-object -ExpandProperty collectionID
+                    set-location $StartingLocation
+                }
+                $GroupTextBox.Text = $CSV[0].GroupName
+                $ColNameTextBox.Text = $CSV[0].CollectionName
+                $CollectionIDTextBOX.Text = $CollectionID
+                $GroupTextBox.Refresh()
+                $ColNameTextBox.Refresh()
+                $CollectionIDTextBOX.Refresh()
+                }
+            })
+            $objForm.Controls.Add($SearchCSVButton)
+
+
+            ###Display Form###
+
         
             $objForm.Topmost = $True
             $objForm.Add_Shown({$objForm.Activate()})
@@ -544,6 +597,7 @@ function Get-Information{
                 GroupName = $GroupTextBox.Text
                 collectionID = $CollectionIDTextBOX.Text
                 SiteCodeID = $SiteCodeTextBox.Text
+                CSVFile = $CSVTextBox.Text
             }
             $Object = New-Object -TypeName psobject -Property $Hash
             return $Object
@@ -556,14 +610,25 @@ function New-ADGroupQuery{
     param(
         [parameter(Mandatory = $true)]
         [string]$GroupName,
-        [parameter(Mandatory = $true)]
-        [string]$CollectionID
+        [parameter(HelpMessage = "Enter Collection ID")]
+        [string]$CollectionID,
+        [Parameter(HelpMessage = "Collection Name")]
+        [string]$CollectionName
         )
-$GroupName = "$((Get-ADDomain).Name)\\$GroupName"
-$Query = @"
-select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
+        if($CollectionName){
+            $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+            $Query = @"
+            select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-        Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
+                    Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
+            }
+        if($CollectionID){
+            $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+            $Query = @"
+            select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
+"@
+                    Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
+            }
 }
 }
 process{
@@ -571,7 +636,25 @@ process{
     if(Test-ConfigMgrAvailable -Remediate:$true){
     $Information = Get-Information
     if($Information){
-        #New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
+        if($Information.CSVFile -ne ""){
+            $ColDataSet = import-csv -path $Information.CSVFile
+            foreach($Colitem in $ColDataSet){
+                if($Colitem.collectionID -eq $null){
+                #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
+                Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
+                }
+                if($Colitem.CollectionName -eq $null){
+                    #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
+                    Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+                }
+
+            }
+        if($Information.CSVFile -eq ""){
+            #New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
+            Write-Verbose -Message "#New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID" -Verbose
+        }
+        }
+        
     }
     Set-location $StartingLocation
     }
