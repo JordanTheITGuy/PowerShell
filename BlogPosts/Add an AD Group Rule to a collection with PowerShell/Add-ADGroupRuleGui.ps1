@@ -1,23 +1,34 @@
 <#
 .SYNOPSIS
+    This script allows a user to add a set of active directory groups to a collection. The current design is around
+    Machine based collections and Active Directory Groups. 
+
 
 .DESCRIPTION
+    Currently this script requires the Configuration Manager PowerShell Module to be installed. 
 
 .LINK
+    GitHubLink
 
 .NOTES
-          FileName: Untitled-1
+          FileName: Add-ADGroupRuleGui.PS1
           Author: Jordan Benzing
           Contact: @JordanTheItGuy
           Created: 2019-10-10
-          Modified: 2019-10-10
+          Modified: 2019-10-11
 
           Version - 0.0.0 - (2019-10-10)
+          Version - 0.0.1 - (2019-10-10)
+                  - Original code base written. It supports typing something in and adding a group to a collection using a 
+                    pre-written rule as a here string. GUI using WinForms
+          Version - 0.0.2 - (2019-10-11)
+                  - Version 0.0.2 written Now supports searching the configMgr server for those groups
+                  - Supports Search for collections
+                  - supports imporing a CSV and running through a list of items. 
 
 
-          TODO:
-               [ ] Script Main Goal
-               [ ] Script Secondary Goal
+          #TODO: Update Notes in Code
+          #ENHANCEMENT:
 
 .EXAMPLE
 
