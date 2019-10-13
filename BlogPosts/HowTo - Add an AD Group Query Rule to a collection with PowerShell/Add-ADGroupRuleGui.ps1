@@ -8,7 +8,7 @@
     Currently this script requires the Configuration Manager PowerShell Module to be installed. 
 
 .LINK
-    GitHubLink
+    https://github.com/JordanTheITGuy/PowerShell/tree/master/BlogPosts/HowTo%20-%20Add%20an%20AD%20Group%20Query%20Rule%20to%20a%20collection%20with%20PowerShell
 
 .NOTES
           FileName: Add-ADGroupRuleGui.PS1
@@ -25,11 +25,16 @@
                   - Version 0.0.2 written Now supports searching the configMgr server for those groups
                   - Supports Search for collections
                   - supports imporing a CSV and running through a list of items. 
+          Version - 0.0.3 - (2019-10-13)
+                  - Added in DPI Scaling
+                  - Added in search function if you hit enter when you are in a field
+                  - Addedin starting notes. 
 
 
-          #TODO: Update Notes in Code
-          #ENHANCE: Update this code to perform a check before attempting the action
-          #BUG: This is a BUG - The code might work but experience issues.
+          #TODO: Add No GUI Option
+          #ENHANCE: remove redundant checks for ConfigMgr code as currently we are checking every time we try to access it
+          #TODO: Add a text box that shows the assumed SCCM Server.
+          #TODO: Fix Variable Names to be better
 
 
         
@@ -99,13 +104,13 @@ function Test-ConfigMgrAvailable
                 }
             }
             write-Verbose "Succesfully validated connection to a CMProvider"
-            return $true
+             $true
         }
         catch
         {
             $errorMessage = $_.Exception.Message
             write-error -Exception CMPatching -Message $errorMessage
-            return $false
+             $false
         }
 }
 
@@ -123,8 +128,8 @@ function Test-Module
     If(Get-Module -Name $ModuleName)
     #Checks if the module is currently loaded and if it is then return true.
     {
-        Write-Verbose -Message "The module was already loaded return TRUE"
-        return $true
+        Write-Verbose -Message "The module was already loaded return  TRUE"
+         $true
     }
     If((Get-Module -Name $ModuleName) -ne $true)
     #Checks if the module is NOT loaded and if it's not loaded then check to see if remediation is requested. 
@@ -142,7 +147,7 @@ function Test-Module
                         Get-CMModule
                         #Runs the command to get the COnfigMgr module if its needed. 
                         Write-Verbose -Message "Succesfully loaded the module"
-                        return $true
+                        $true
                     }
                     else
                     {
@@ -150,7 +155,7 @@ function Test-Module
                     Import-Module -Name $ModuleName
                     #Import  the other module as needed - if they have no custom requirements.
                     Write-Verbose -Message "Succesfully improted the module $ModuleName"
-                    Return $true
+                     $true
                     }
             }
             catch 
@@ -161,9 +166,9 @@ function Test-Module
             }
         }
         else {
-            #Else return the fact that it's not applicable and return false from the execution.
+            #Else return the fact that it's not applicable and  false from the execution.
             {
-                Return $false
+                 $false
             }
         }
     }
@@ -186,7 +191,6 @@ function Set-ADGroupChoice{
     $OKButton.Size = New-Object System.Drawing.Size(75,23)
     $OKButton.Text = 'OK'
     $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $GroupPicker.AcceptButton = $OKButton
     $GroupPicker.Controls.Add($OKButton)
 
     $CancelButton = New-Object System.Windows.Forms.Button
@@ -221,7 +225,7 @@ function Set-ADGroupChoice{
     {
         $x = $listBox.SelectedItem
         $X = $GroupList | Where-Object {$_.UsergroupName -eq $x}      
-        return $X
+         $X
     }
 }
 
@@ -242,7 +246,6 @@ function Set-CollectionChoice{
     $OKButton.Size = New-Object System.Drawing.Size(75,23)
     $OKButton.Text = 'OK'
     $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $CollectionPicker.AcceptButton = $OKButton
     $CollectionPicker.Controls.Add($OKButton)
 
     $CancelButton = New-Object System.Windows.Forms.Button
@@ -277,17 +280,8 @@ function Set-CollectionChoice{
     {
         $x = $listBox.SelectedItem
         $X = $CollectionList | Where-Object {$_.Name -eq $x}      
-        return $X
+         $X
     }
-}
-
-function import-Data{
-    [cmdletbinding()]
-    param(
-        [Parameter(HelpMessage = "The path to the CSV")]
-        [string]$CSVPath
-    )
-
 }
 
 function Get-GuiFilePath
@@ -322,7 +316,7 @@ function Get-GuiFilePath
          }
          
          
-         return $FileBrowser
+          $FileBrowser
 }
 function Get-Information{
     [cmdletbinding()]
@@ -333,17 +327,20 @@ function Get-Information{
         Add-Type -AssemblyName System.Windows.Forms
     }
     process{
-            $objForm = New-Object System.Windows.Forms.Form 
-            $objForm.Text = "SCConfigMgr - Add AD Group Query Rule To Collection"
-            $objForm.Icon = "$(split-path $script:MyInvocation.MyCommand.Path)\SCConfigMgrLogo-Square.ico"
-            $objForm.BackColor = [System.Drawing.Color]::LightGray
-            $objForm.Size = New-Object System.Drawing.Size(480,300) 
-            $objForm.StartPosition = "CenterScreen"
+            $InfoGatherForm = New-Object System.Windows.Forms.Form 
+            $InfoGatherForm.Text = "SCConfigMgr - Add AD Group Query Rule To Collection"
+            $InfoGatherForm.Icon = "$(split-path $script:MyInvocation.MyCommand.Path)\SCConfigMgrLogo-Square.ico"
+            $InfoGatherForm.BackColor = [System.Drawing.Color]::LightGray
+            $InfoGatherForm.Size = New-Object System.Drawing.Size(480,300) 
+            $InfoGatherForm.StartPosition = "CenterScreen"
+            $InfoGatherForm.AutoScalemode = "Dpi"
+            $InfoGatherForm.AutoSize = $true
+            $InfoGatherForm.AutoSizeMode = "GrowOnly"
         
-            $objForm.KeyPreview = $True
-            $objForm.Add_KeyDown({
+            $InfoGatherForm.KeyPreview = $True
+            $InfoGatherForm.Add_KeyDown({
                 if ($_.KeyCode -eq "Enter" -or $_.KeyCode -eq "Escape"){
-                    $objForm.Close()
+                    $InfoGatherForm.Close()
                 }
             })
         
@@ -354,11 +351,10 @@ function Get-Information{
             $OKButton.Size = New-Object System.Drawing.Size(75,23)
             $OKButton.Text = "OK"
             $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-            $objForm.AcceptButton = $OKButton
             $OKButton.Add_Click({
-                $objForm.Close()
+                $InfoGatherForm.Close()
             })
-            $objForm.Controls.Add($OKButton)
+            $InfoGatherForm.Controls.Add($OKButton)
             
             #Cancel Button
             $CancelButton = New-Object System.Windows.Forms.Button
@@ -369,9 +365,9 @@ function Get-Information{
             $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
             $CancelButton = $CancelButton
             $CancelButton.Add_Click({
-                $objForm.Close()
+                $InfoGatherForm.Close()
              })
-            $objForm.Controls.Add($CancelButton)
+            $InfoGatherForm.Controls.Add($CancelButton)
                   
             ###ADGroup Information###
             $GroupLabel = New-Object System.Windows.Forms.Label
@@ -379,14 +375,20 @@ function Get-Information{
             $GroupLabel.Size = New-Object System.Drawing.Size(315,20) 
             $GroupLabel.Text = "Enter The Group Name - Supports wildcards"
             $GroupLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $objForm.Controls.Add($GroupLabel) 
+            $InfoGatherForm.Controls.Add($GroupLabel) 
         
             $GroupTextBox= New-Object System.Windows.Forms.TextBox 
             $GroupTextBox.Location = New-Object System.Drawing.Size(10,40) 
             $GroupTextBox.Size = New-Object System.Drawing.Size(315,20)
             $GroupTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $GroupTextBox.Text = ""
-            $objForm.Controls.Add($GroupTextBox)
+            $GroupTextBox.Add_KeyDown({
+                if ($_.KeyCode -eq "Enter"){
+                    $SearchADButton.PerformClick()
+                }
+            })
+
+            $InfoGatherForm.Controls.Add($GroupTextBox)
             
             ###AD Group Search###
             $SearchADButton = New-Object System.Windows.Forms.Button
@@ -425,7 +427,7 @@ function Get-Information{
                 }
                 Set-location $StartingLocation
             })
-            $objForm.Controls.Add($SearchADButton)
+            $InfoGatherForm.Controls.Add($SearchADButton)
 
             ###Collection ID Information###
             $CollectionLabel = New-Object System.Windows.Forms.Label
@@ -433,7 +435,7 @@ function Get-Information{
             $CollectionLabel.Size = New-Object System.Drawing.Size(135,20) 
             $CollectionLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $CollectionLabel.Text = "Enter Collection ID     OR"
-            $objForm.Controls.Add($CollectionLabel)
+            $InfoGatherForm.Controls.Add($CollectionLabel)
         
             $CollectionIDTextBOX = New-Object System.Windows.Forms.TextBox 
             $CollectionIDTextBOX.Location = New-Object System.Drawing.Size(10,90) 
@@ -441,7 +443,12 @@ function Get-Information{
             $CollectionIDTextBOX.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $CollectionIDTextBOX.AutoSize = $True
             $CollectionIDTextBOX.Text = ""
-            $objForm.Controls.Add($CollectionIDTextBOX)
+            $CollectionIDTextBOX.Add_KeyDown({
+                if ($_.KeyCode -eq "Enter"){
+                    $SearchCollButton.PerformClick()
+                }
+            })
+            $InfoGatherForm.Controls.Add($CollectionIDTextBOX)
         
             ###Collection Name Info###
 
@@ -450,7 +457,7 @@ function Get-Information{
             $ColNameLabel.Size = New-Object System.Drawing.Size(200,20) 
             $ColNameLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $ColNameLabel.Text = "Collection Name - Supports Wildcards"
-            $objForm.Controls.Add($ColNameLabel)
+            $InfoGatherForm.Controls.Add($ColNameLabel)
 
             $ColNameTextBox = New-Object System.Windows.Forms.TextBox
             $ColNameTextBox.Location = New-Object System.Drawing.Size(150,90) 
@@ -458,7 +465,12 @@ function Get-Information{
             $ColNameTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $ColNameTextBox.AutoSize = $True
             $ColNameTextBox.Text = ""
-            $objForm.Controls.Add($ColNameTextBox)
+            $ColNameTextBox.Add_KeyDown({
+                if ($_.KeyCode -eq "Enter"){
+                    $SearchCollButton.PerformClick()
+                }
+            })
+            $InfoGatherForm.Controls.Add($ColNameTextBox)
 
             ###Search Button###
             $SearchCollButton = New-Object System.Windows.Forms.Button
@@ -533,7 +545,7 @@ function Get-Information{
                     set-location $STartingLocation
                 }
             })
-            $objForm.Controls.Add($SearchCollButton)
+            $InfoGatherForm.Controls.Add($SearchCollButton)
                   
             ###Site Server ID ###
             $SiteCodeLabel = New-Object System.Windows.Forms.Label
@@ -541,7 +553,7 @@ function Get-Information{
             $SiteCodeLabel.Size = New-Object System.Drawing.Size(100,20) 
             $SiteCodeLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $SiteCodeLabel.Text = "Site Server ID"
-            $objForm.Controls.Add($SiteCodeLabel)
+            $InfoGatherForm.Controls.Add($SiteCodeLabel)
         
              
            $SiteCodeTextBox = New-Object System.Windows.Forms.TextBox 
@@ -554,7 +566,7 @@ function Get-Information{
                 $CMSiteCode = $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name
            }
            $SiteCodeTextBox.Text = "$CMSiteCode"
-           $objForm.Controls.Add($SiteCodeTextBox)
+           $InfoGatherForm.Controls.Add($SiteCodeTextBox)
 
             ###CSV Info###
 
@@ -563,7 +575,7 @@ function Get-Information{
             $CSVLabel.Size = New-Object System.Drawing.Size(200,20) 
             $CSVLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $CSVLabel.Text = "CSV Path"
-            $objForm.Controls.Add($CSVLabel)
+            $InfoGatherForm.Controls.Add($CSVLabel)
 
             $CSVTextBox = New-Object System.Windows.Forms.TextBox
             $CSVTextBox.Location = New-Object System.Drawing.Size(150,140) 
@@ -571,7 +583,7 @@ function Get-Information{
             $CSVTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $CSVTextBox.AutoSize = $True
             $CSVTextBox.Text = ""
-            $objForm.Controls.Add($CSVTextBox)
+            $InfoGatherForm.Controls.Add($CSVTextBox)
 
             ###Search CSV Button###
             $SearchCSVButton = New-Object System.Windows.Forms.Button
@@ -598,15 +610,13 @@ function Get-Information{
                 $CollectionIDTextBOX.Refresh()
                 }
             })
-            $objForm.Controls.Add($SearchCSVButton)
-
+            $InfoGatherForm.Controls.Add($SearchCSVButton)
 
             ###Display Form###
 
-        
-            $objForm.Topmost = $True
-            $objForm.Add_Shown({$objForm.Activate()})
-            $Result = $objForm.ShowDialog()
+            $InfoGatherForm.Topmost = $True
+            $InfoGatherForm.Add_Shown({$GroupTextBox.Select()})
+            $Result = $InfoGatherForm.ShowDialog()
             if($Result -eq [System.Windows.Forms.DialogResult]::OK){
             $Hash = @{
                 GroupName = $GroupTextBox.Text
@@ -615,7 +625,7 @@ function Get-Information{
                 CSVFile = $CSVTextBox.Text
             }
             $Object = New-Object -TypeName psobject -Property $Hash
-            return $Object
+             $Object
             }
         }
 }
@@ -662,7 +672,6 @@ process{
                     #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
                     Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
                 }
-
             }
         if($Information.CSVFile -eq ""){
             #New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
