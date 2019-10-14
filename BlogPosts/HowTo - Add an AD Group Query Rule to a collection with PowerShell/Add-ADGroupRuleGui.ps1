@@ -60,10 +60,10 @@ function Get-CMModule {
     param()
     Try
     {
-        Write-Log -message "Attempting to import SCCM Module" -LogLevel 1
+        Write-Debug -message "Attempting to import SCCM Module"
         #Retrieves the fcnction from ConfigMgr installation path. 
         Import-Module (Join-Path $(Split-Path $ENV:SMS_ADMIN_UI_PATH) ConfigurationManager.psd1) -Verbose:$false
-        Write-log -Message "Succesfully imported the SCCM Module"
+        Write-Debug -Message "Succesfully imported the SCCM Module"
     }
     Catch
     {
@@ -86,18 +86,18 @@ function Test-ConfigMgrAvailable {
                 throw "You have not loaded the configuration manager module please load the appropriate module and try again."
                 #Throws this error if even after the remediation or if the remediation fails. 
             }
-            Write-log -Message "ConfigurationManager Module is loaded"
-            Write-log -Message "Checking if current drive is a CMDrive"
+            write-debug -Message "ConfigurationManager Module is loaded"
+            write-debug -Message "Checking if current drive is a CMDrive"
             if((Get-location -Verbose:$false).Path -ne (Get-location -PSProvider 'CmSite' -Verbose:$false).Path)
             #Checks if the current location is the - PS provider for the CMSite server. 
             {
-                Write-log -Message "The location is NOT currently the CMDrive"
+                write-debug -Message "The location is NOT currently the CMDrive"
                 if($Remediate)
                 #If the remediation field is set then it attempts to set the current location of the path to the CMSite server path. 
                     {
-                        Write-log -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
+                        write-debug -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
                         Set-Location -Path (((Get-PSDrive -PSProvider CMSite -Verbose:$false).Name) + ":") -Verbose:$false
-                        Write-log -Message "Succesfully connected to the CMDrive"
+                        write-debug -Message "Succesfully connected to the CMDrive"
                         #Sets the location properly to the PSDrive.
                     }
 
@@ -106,7 +106,7 @@ function Test-ConfigMgrAvailable {
                     throw "You are not currently connected to a CMSite Provider Please Connect and try again"
                 }
             }
-            Write-log -Message "Succesfully validated connection to a CMProvider"
+            write-debug -Message "Succesfully validated connection to a CMProvider"
              $true
         }
         catch
@@ -129,13 +129,13 @@ function Test-Module {
     If(Get-Module -Name $ModuleName)
     #Checks if the module is currently loaded and if it is then return true.
     {
-        Write-log -Message "The module was already loaded return  TRUE"
+        write-debug -Message "The module was already loaded return  TRUE"
          $true
     }
     If((Get-Module -Name $ModuleName) -ne $true)
     #Checks if the module is NOT loaded and if it's not loaded then check to see if remediation is requested. 
     {
-        Write-log -Message "The Module was not already loaded evaluate if remediation flag was set"
+        write-debug -Message "The Module was not already loaded evaluate if remediation flag was set"
         if($Remediate -eq $true)
         #If the remediation flag is selected then attempt to import the module. 
         {
@@ -144,18 +144,18 @@ function Test-Module {
                     if($ModuleName -eq "ConfigurationManager")
                     #If the module requested is the Configuration Manager module use the below method to try to import the ConfigMGr Module.
                     {
-                        Write-log -Message "Non-Standard module requested run pre-written function"
+                        write-debug -Message "Non-Standard module requested run pre-written function"
                         Get-CMModule
                         #Runs the command to get the COnfigMgr module if its needed. 
-                        Write-log -Message "Succesfully loaded the module"
+                        write-debug -Message "Succesfully loaded the module"
                         $true
                     }
                     else
                     {
-                    Write-log -Message "Remediation flag WAS set now attempting to import module $($ModuleName)"
+                    write-debug -Message "Remediation flag WAS set now attempting to import module $($ModuleName)"
                     Import-Module -Name $ModuleName
                     #Import  the other module as needed - if they have no custom requirements.
-                    Write-log -Message "Succesfully improted the module $ModuleName"
+                    write-debug -Message "Succesfully improted the module $ModuleName"
                      $true
                     }
             }
@@ -716,6 +716,7 @@ function New-ADGroupQuery{
         [Parameter(HelpMessage = "Collection Name")]
         [string]$CollectionName
         )
+        try{
         if($CollectionName){
             Write-log -Message "Collection Name option was chosen"
             $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
@@ -724,7 +725,7 @@ function New-ADGroupQuery{
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
             Write-log -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
             Write-log -Message "We ran the attempted add"    
         }
         if($CollectionID){
@@ -735,8 +736,12 @@ select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
             Write-log -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
             Write-log -Message "We ran the attempted add"      
+        }
+}
+        catch{
+            Write-Log -Message "Something went wrong attempting to add $($GroupName) to the CollectionID:$($CollectionID) or CollectionName:$($CollectionName) please try again and use the validate options."
         }
 }
 
@@ -751,7 +756,6 @@ process{
         Write-Log -Message "Now completed inital validation steps"
         if(-not $NOGUI){
             $Information = Get-Information
-            Write-log -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
             if($Information){
                 Write-log -Message "Now entering the information validation steps."
                 if($Information.CSVFile -ne ""){
@@ -771,6 +775,7 @@ process{
                 }
                 if($Information.CSVFile -eq ""){
                     Write-log -Message "No CSV File was provided assuming single event"
+                    Write-log -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
                     #ENHANCE: Add a notification that this process completes succesfully and re-open the form if needed?
                     New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)
                     Write-log -Message "#New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)" -Verbose
