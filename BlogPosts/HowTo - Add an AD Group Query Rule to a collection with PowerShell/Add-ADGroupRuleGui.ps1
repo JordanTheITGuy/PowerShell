@@ -32,9 +32,9 @@
 
 
           #TODO: Add No GUI Option
-          #ENHANCE: remove redundant checks for ConfigMgr code as currently we are checking every time we try to access it
+          #COMPLETE: remove redundant checks for ConfigMgr code as currently we are checking every time we try to access it
           #TODO: Add a text box that shows the assumed SCCM Server.
-          #TODO: Fix Variable Names to be better
+          #ENHANCE: Fix Variable Names to be better - I'll do this at some point....
 
 
         
@@ -43,22 +43,27 @@
 #>
 
 
-[cmdletbinding()]
-param()
+[cmdletbinding(DefaultParameterSetName = "None")]
+param(
+    [Parameter(HelpMessage = "This switch enables the script to be run independently and does NOT launch the forms GUI",Mandatory = $false, ParameterSetName = "NOGUI")]
+    [switch]$NOGUI,
+    [Parameter(HelpMessage = "This parameter is for the collection ID of the device you would like to add.",Mandatory = $true, ParameterSetName = "NOGUI")]
+    [string]$CollectionID,
+    [Parameter(HelpMessage = "This parameter is for the AD Group name you would like to bind to the collection.",Mandatory = $true, ParameterSetName = "NOGUI")]
+    [string]$ADGroupNAme
+)
 begin{
 
 #region helperfunctions
-function Get-CMModule
-#This application gets the configMgr module
-{
+function Get-CMModule {
     [CmdletBinding()]
     param()
     Try
     {
-        Write-Verbose "Attempting to import SCCM Module"
+        Write-Log -message "Attempting to import SCCM Module" -LogLevel 1
         #Retrieves the fcnction from ConfigMgr installation path. 
         Import-Module (Join-Path $(Split-Path $ENV:SMS_ADMIN_UI_PATH) ConfigurationManager.psd1) -Verbose:$false
-        Write-Verbose "Succesfully imported the SCCM Module"
+        Write-log -Message "Succesfully imported the SCCM Module"
     }
     Catch
     {
@@ -66,9 +71,7 @@ function Get-CMModule
     } 
 }
 
-function Test-ConfigMgrAvailable
-#Tests if ConfigMgr is availble so that the SMSProvider and configmgr cmdlets can help. 
-{
+function Test-ConfigMgrAvailable {
     [CMdletbinding()]
     Param
     (
@@ -83,18 +86,18 @@ function Test-ConfigMgrAvailable
                 throw "You have not loaded the configuration manager module please load the appropriate module and try again."
                 #Throws this error if even after the remediation or if the remediation fails. 
             }
-            write-Verbose "ConfigurationManager Module is loaded"
-            Write-Verbose "Checking if current drive is a CMDrive"
+            Write-log -Message "ConfigurationManager Module is loaded"
+            Write-log -Message "Checking if current drive is a CMDrive"
             if((Get-location -Verbose:$false).Path -ne (Get-location -PSProvider 'CmSite' -Verbose:$false).Path)
             #Checks if the current location is the - PS provider for the CMSite server. 
             {
-                Write-Verbose -Message "The location is NOT currently the CMDrive"
+                Write-log -Message "The location is NOT currently the CMDrive"
                 if($Remediate)
                 #If the remediation field is set then it attempts to set the current location of the path to the CMSite server path. 
                     {
-                        Write-Verbose -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
+                        Write-log -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
                         Set-Location -Path (((Get-PSDrive -PSProvider CMSite -Verbose:$false).Name) + ":") -Verbose:$false
-                        Write-Verbose -Message "Succesfully connected to the CMDrive"
+                        Write-log -Message "Succesfully connected to the CMDrive"
                         #Sets the location properly to the PSDrive.
                     }
 
@@ -103,7 +106,7 @@ function Test-ConfigMgrAvailable
                     throw "You are not currently connected to a CMSite Provider Please Connect and try again"
                 }
             }
-            write-Verbose "Succesfully validated connection to a CMProvider"
+            Write-log -Message "Succesfully validated connection to a CMProvider"
              $true
         }
         catch
@@ -114,9 +117,7 @@ function Test-ConfigMgrAvailable
         }
 }
 
-function Test-Module
-#Function that is designed to test a module if it is loaded or not. 
-{
+function Test-Module {
     [CMdletbinding()]
     Param
     (
@@ -128,13 +129,13 @@ function Test-Module
     If(Get-Module -Name $ModuleName)
     #Checks if the module is currently loaded and if it is then return true.
     {
-        Write-Verbose -Message "The module was already loaded return  TRUE"
+        Write-log -Message "The module was already loaded return  TRUE"
          $true
     }
     If((Get-Module -Name $ModuleName) -ne $true)
     #Checks if the module is NOT loaded and if it's not loaded then check to see if remediation is requested. 
     {
-        Write-Verbose -Message "The Module was not already loaded evaluate if remediation flag was set"
+        Write-log -Message "The Module was not already loaded evaluate if remediation flag was set"
         if($Remediate -eq $true)
         #If the remediation flag is selected then attempt to import the module. 
         {
@@ -143,25 +144,24 @@ function Test-Module
                     if($ModuleName -eq "ConfigurationManager")
                     #If the module requested is the Configuration Manager module use the below method to try to import the ConfigMGr Module.
                     {
-                        Write-Verbose -Message "Non-Standard module requested run pre-written function"
+                        Write-log -Message "Non-Standard module requested run pre-written function"
                         Get-CMModule
                         #Runs the command to get the COnfigMgr module if its needed. 
-                        Write-Verbose -Message "Succesfully loaded the module"
+                        Write-log -Message "Succesfully loaded the module"
                         $true
                     }
                     else
                     {
-                    Write-Verbose -Message "Remediation flag WAS set now attempting to import module $($ModuleName)"
+                    Write-log -Message "Remediation flag WAS set now attempting to import module $($ModuleName)"
                     Import-Module -Name $ModuleName
                     #Import  the other module as needed - if they have no custom requirements.
-                    Write-Verbose -Message "Succesfully improted the module $ModuleName"
+                    Write-log -Message "Succesfully improted the module $ModuleName"
                      $true
                     }
             }
             catch 
             {
                 Write-Error -Message "Failed to import the module $($ModuleName)"
-                Set-Location $StartingLocation
                 break
             }
         }
@@ -173,6 +173,97 @@ function Test-Module
         }
     }
 }
+
+Function Start-Log {
+         [CmdletBinding()]
+         param (
+         [string]$FilePath
+          )
+         try
+              {
+                    if(!(Split-Path $FilePath -Parent | Test-Path))
+                    {
+                         New-Item (Split-Path $FilePath -Parent) -Type Directory | Out-Null
+                    }
+                    #Confirm the provided destination for logging exists if it doesn't then create it.
+                    if (!(Test-Path $FilePath))
+                         {
+                             ## Create the log file destination if it doesn't exist.
+                             New-Item $FilePath -Type File | Out-Null
+                         }
+                         ## Set the global variable to be used as the FilePath for all subsequent Write-log
+                         ## calls in this session
+                         $global:ScriptLogFilePath = $FilePath
+              }
+         catch
+         {
+               #In event of an error write an exception
+             Write-Error $_.Exception.Message
+         }
+}
+     
+Function Write-Log {
+          param (
+         [Parameter(Mandatory = $true)]
+         [string]$Message,
+         [Parameter()]
+         [ValidateSet(1, 2, 3)]
+          [string]$LogLevel=1,
+          [Parameter(Mandatory = $false)]
+         [bool]$writetoscreen = $true   
+        )
+         $TimeGenerated = "$(Get-Date -Format HH:mm:ss).$((Get-Date).Millisecond)+000"
+         $Line = '<![LOG[{0}]LOG]!><time="{1}" date="{2}" component="{3}" context="" type="{4}" thread="" file="">'
+         $LineFormat = $Message, $TimeGenerated, (Get-Date -Format MM-dd-yyyy), "$($MyInvocation.ScriptName | Split-Path -Leaf):$($MyInvocation.ScriptLineNumber)", $LogLevel
+          $Line = $Line -f $LineFormat
+          [system.GC]::Collect()
+         Add-Content -Value $Line -Path $global:ScriptLogFilePath
+          if($writetoscreen)
+          {
+             switch ($LogLevel)
+             {
+                 '1'{
+                     Write-Verbose -Message $Message
+                     }
+                 '2'{
+                     Write-Warning -Message $Message
+                     }
+                 '3'{
+                     Write-Error -Message $Message
+                     }
+                 Default {
+                 }
+             }
+         }
+          if($writetolistbox -eq $true)
+          {
+             $result1.Items.Add("$Message")
+         }
+}
+     
+function set-DefaultLogPath {
+          [CmdletBinding()]
+          param
+          (
+               [parameter(Mandatory = $false)]
+               [bool]$defaultLogLocation = $true,
+               [parameter(Mandatory = $false)]
+               [string]$LogLocation
+          )
+          if($defaultLogLocation)
+          {
+               $LogPath = Split-Path $script:MyInvocation.MyCommand.Path
+               $LogFile = "$($($script:MyInvocation.MyCommand.Name).Substring(0,$($script:MyInvocation.MyCommand.Name).Length-4)).log"		
+               Start-Log -FilePath $($LogPath + "\" + $LogFile)
+          }
+          else 
+          {
+               $LogPath = $LogLocation
+               $LogFile = "$($($script:MyInvocation.MyCommand.Name).Substring(0,$($script:MyInvocation.MyCommand.Name).Length-4)).log"		
+               Start-$InfoGatherFormLog -FilePath $($LogPath + "\" + $LogFile)
+          }
+}
+
 #endregion helperfunctions
 function Set-ADGroupChoice{
     [cmdletbinding()]
@@ -397,8 +488,6 @@ function Get-Information{
             $SearchADButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
             $SearchADButton.Text = "Search"
             $SearchADButton.Add_Click({                
-                if(Test-ConfigMgrAvailable -Remediate:$True){
-                    $StartingLocation = $(Get-Location).Path
                     if($SiteCodeTextBox.Text -eq $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name){
                         $ADGroup = $GroupTextBox.Text
                         if($ADGroup.Length -gt '0'){
@@ -424,8 +513,6 @@ function Get-Information{
                         $GroupTextBox.Text = "MUST supply site code search ConfigMGr for group"
                         $GroupTextBox.Update()
                     }
-                }
-                Set-location $StartingLocation
             })
             $InfoGatherForm.Controls.Add($SearchADButton)
 
@@ -479,8 +566,6 @@ function Get-Information{
             $SearchCollButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right
             $SearchCollButton.Text = "Search"
             $SearchCollButton.Add_Click({
-                if(Test-ConfigMgrAvailable -Remediate:$True){
-                    $StartingLocation = $(Get-Location).Path
                     $ColID = $CollectionIDTextBOX.Text
                     $ColName = $ColNameTextBox.Text
                     if($ColID){
@@ -507,7 +592,6 @@ function Get-Information{
                             }
                         }
                         catch{
-
                         }
                     }
                     if($ColName){
@@ -542,9 +626,7 @@ function Get-Information{
                         }
                         
                     }
-                    set-location $STartingLocation
-                }
-            })
+                })
             $InfoGatherForm.Controls.Add($SearchCollButton)
                   
             ###Site Server ID ###
@@ -561,10 +643,7 @@ function Get-Information{
            $SiteCodeTextBox.Size = New-Object System.Drawing.Size(120,20) 
            $SiteCodeTextBox.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
            $SiteCodeTextBox.AutoSize = $True
-           if(Test-ConfigMgrAvailable -Remediate:$True){
-                $StartingLocation = $(Get-Location).Path
-                $CMSiteCode = $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name
-           }
+           $CMSiteCode = $(Get-PSDrive | Where-Object {$_.Provider -match "CMSite"}).Name
            $SiteCodeTextBox.Text = "$CMSiteCode"
            $InfoGatherForm.Controls.Add($SiteCodeTextBox)
 
@@ -597,11 +676,7 @@ function Get-Information{
                 $CSVTextBox.Text = $Info.FileName
                 $CSVTextBox.Refresh()
                 $CSV = Import-Csv -Path $Info.FileName
-                if(Test-ConfigMgrAvailable -Remediate:$True){
-                    $StartingLocation = $(Get-Location).Path
-                    $CollectionID = Get-CMDeviceCollection -Name $CSV[0].CollectionName | Select-object -ExpandProperty collectionID
-                    set-location $StartingLocation
-                }
+                $CollectionID = Get-CMDeviceCollection -Name $CSV[0].CollectionName | Select-object -ExpandProperty collectionID
                 $GroupTextBox.Text = $CSV[0].GroupName
                 $ColNameTextBox.Text = $CSV[0].CollectionName
                 $CollectionIDTextBOX.Text = $CollectionID
@@ -642,60 +717,69 @@ function New-ADGroupQuery{
         [string]$CollectionName
         )
         if($CollectionName){
-            Write-Verbose -Message "Collection Name option was chosen"
+            Write-log -Message "Collection Name option was chosen"
             $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
-            Write-Verbose -Message "Group Name has been set as $($GroupName)"
+            Write-log -Message "Group Name has been set as $($GroupName)"
             $Query = @"
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-            Write-Verbose -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
-            Write-Verbose -Message "We ran the attempted add"    
+            Write-log -Message "The query was built as $($Query)"
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false
+            Write-log -Message "We ran the attempted add"    
         }
         if($CollectionID){
-            Write-Verbose -Message "Collection ID option was chosen"
+            Write-log -Message "Collection ID option was chosen"
             $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
-            Write-Verbose -Message "Group Name has been set as $($GroupName)"
+            Write-log -Message "Group Name has been set as $($GroupName)"
             $Query = @"
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-            Write-Verbose -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
-            Write-Verbose -Message "We ran the attempted add"      
+            Write-log -Message "The query was built as $($Query)"
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false
+            Write-log -Message "We ran the attempted add"      
         }
 }
 
 }
 
 process{
+    Set-DefaultLogPath
+    Write-Log -Message "Now starting the AD AdGroup Query Process block"
     $StartingLocation = $(Get-Location).Path
+    Write-Log -Message "Collected the Startingpath and stored it as $($StartingLocation)"
     if(Test-ConfigMgrAvailable -Remediate:$true){
-        $Information = Get-Information
-        Write-Verbose -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
-        if($Information){
-            Write-Verbose -Message "Now entering the information validation steps."
-            if($Information.CSVFile -ne ""){
-                Write-Verbose -Message "Validated that a CSV file was presented"
-                $ColDataSet = import-csv -path $Information.CSVFile
-                Write-Verbose -Message "Imported the CSV data"
-                foreach($Colitem in $ColDataSet){
-                    if($Colitem.collectionID -eq $null){
-                    #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
-                    Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
-                    }
-                    if($Colitem.CollectionName -eq $null){
-                        #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
-                        Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+        Write-Log -Message "Now completed inital validation steps"
+        if(-not $NOGUI){
+            $Information = Get-Information
+            Write-log -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
+            if($Information){
+                Write-log -Message "Now entering the information validation steps."
+                if($Information.CSVFile -ne ""){
+                    Write-log -Message "Validated that a CSV file was presented"
+                    $ColDataSet = import-csv -path $Information.CSVFile
+                    Write-log -Message "Imported the CSV data"
+                    foreach($Colitem in $ColDataSet){
+                        if($Colitem.collectionID -eq $null){
+                        #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
+                        Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
+                        }
+                        if($Colitem.CollectionName -eq $null){
+                            #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
+                            Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+                        }
                     }
                 }
+                if($Information.CSVFile -eq ""){
+                    Write-log -Message "No CSV File was provided assuming single event"
+                    #ENHANCE: Add a notification that this process completes succesfully and re-open the form if needed?
+                    New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)
+                    Write-log -Message "#New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)" -Verbose
+                }
             }
-            if($Information.CSVFile -eq ""){
-                Write-Verbose -Message "No CSV File was provided assuming single event"
-                #ENHANCE: Add a notification that this process completes succesfully and re-open the form if needed?
-                New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)
-                Write-Verbose -Message "#New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)" -Verbose
-            }
-            
+        }
+        if($NOGUI){
+            Write-Log -Message "The No GUI Option was selected proceeding with values: $($ADGroupName) for AD Group and $($CollectionID) for collection"
+            New-ADGroupQuery -GroupName $ADGroupNAme -CollectionID $CollectionID
         }
         Set-location $StartingLocation
     }

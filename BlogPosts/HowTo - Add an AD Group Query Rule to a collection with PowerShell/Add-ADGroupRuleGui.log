@@ -1,0 +1,86 @@
+<![LOG[Now starting the AD AdGroup Query Window]LOG]!><time="15:30:48.715+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:740" context="" type="1" thread="" file="">
+<![LOG[Collected the Startingpath and stored it as E:\GITHUB\PowerShell\BlogPosts\HowTo - Add an AD Group Query Rule to a collection with PowerShell]LOG]!><time="15:30:49.222+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:742" context="" type="1" thread="" file="">
+<![LOG[The module was already loaded return  TRUE]LOG]!><time="15:30:49.640+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:125" context="" type="1" thread="" file="">
+<![LOG[The Module was not already loaded evaluate if remediation flag was set]LOG]!><time="15:30:50.167+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:131" context="" type="1" thread="" file="">
+<![LOG[Non-Standard module requested run pre-written function]LOG]!><time="15:30:50.659+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:140" context="" type="1" thread="" file="">
+<![LOG[Attempting to import SCCM Module]LOG]!><time="15:30:51.114+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:56" context="" type="1" thread="" file="">
+<![LOG[Succesfully imported the SCCM Module]LOG]!><time="15:30:51.526+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:59" context="" type="1" thread="" file="">
+<![LOG[Succesfully loaded the module]LOG]!><time="15:30:51.976+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:143" context="" type="1" thread="" file="">
+<![LOG[ConfigurationManager Module is loaded]LOG]!><time="15:30:52.481+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:82" context="" type="1" thread="" file="">
+<![LOG[Checking if current drive is a CMDrive]LOG]!><time="15:30:52.919+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:83" context="" type="1" thread="" file="">
+<![LOG[The location is NOT currently the CMDrive]LOG]!><time="15:30:53.368+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:87" context="" type="1" thread="" file="">
+<![LOG[Remediation was requested now attempting to set location to the the CM PSDrive]LOG]!><time="15:30:53.777+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:91" context="" type="1" thread="" file="">
+<![LOG[Succesfully connected to the CMDrive]LOG]!><time="15:30:54.252+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:93" context="" type="1" thread="" file="">
+<![LOG[Succesfully validated connection to a CMProvider]LOG]!><time="15:30:54.735+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:102" context="" type="1" thread="" file="">
+<![LOG[Now completed validation steps now launching the AD Group GUI]LOG]!><time="15:30:55.261+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:744" context="" type="1" thread="" file="">
+<![LOG[Retrieved PR100413 and MAINT - SERVER - WEEKLY]LOG]!><time="15:31:50.759+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:746" context="" type="1" thread="" file="">
+<![LOG[Now entering the information validation steps.]LOG]!><time="15:31:51.142+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:748" context="" type="1" thread="" file="">
+<![LOG[No CSV File was provided assuming single event]LOG]!><time="15:31:51.587+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:765" context="" type="1" thread="" file="">
+<![LOG[Collection Name option was chosen]LOG]!><time="15:31:51.979+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:713" context="" type="1" thread="" file="">
+<![LOG[Group Name has been set as PROBRES\\MAINT - SERVER - WEEKLY]LOG]!><time="15:31:52.831+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:715" context="" type="1" thread="" file="">
+<![LOG[The query was built as select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "PROBRES\\MAINT - SERVER - WEEKLY"]LOG]!><time="15:31:53.185+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:719" context="" type="1" thread="" file="">
+<![LOG[We ran the attempted add]LOG]!><time="15:31:54.367+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:721" context="" type="1" thread="" file="">
+<![LOG[#New-ADGroupQuery -GroupName MAINT - SERVER - WEEKLY -CollectionName MAINT - SERVER - WEEKLY]LOG]!><time="15:31:54.784+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:768" context="" type="1" thread="" file="">
+<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="15:45:46.598+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:747" context="" type="1" thread="" file="">
+<![LOG[Collected the Startingpath and stored it as E:\GITHUB\PowerShell\BlogPosts\HowTo - Add an AD Group Query Rule to a collection with PowerShell]LOG]!><time="15:45:47.51+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:749" context="" type="1" thread="" file="">
+<![LOG[The module was already loaded return  TRUE]LOG]!><time="15:45:47.451+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:132" context="" type="1" thread="" file="">
+<![LOG[The Module was not already loaded evaluate if remediation flag was set]LOG]!><time="15:45:47.844+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:138" context="" type="1" thread="" file="">
+<![LOG[Non-Standard module requested run pre-written function]LOG]!><time="15:45:48.269+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:147" context="" type="1" thread="" file="">
+<![LOG[Attempting to import SCCM Module]LOG]!><time="15:45:48.657+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:63" context="" type="1" thread="" file="">
+<![LOG[Succesfully imported the SCCM Module]LOG]!><time="15:45:49.73+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:66" context="" type="1" thread="" file="">
+<![LOG[Succesfully loaded the module]LOG]!><time="15:45:49.514+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:150" context="" type="1" thread="" file="">
+<![LOG[ConfigurationManager Module is loaded]LOG]!><time="15:45:49.897+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:89" context="" type="1" thread="" file="">
+<![LOG[Checking if current drive is a CMDrive]LOG]!><time="15:45:50.286+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:90" context="" type="1" thread="" file="">
+<![LOG[The location is NOT currently the CMDrive]LOG]!><time="15:45:50.720+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:94" context="" type="1" thread="" file="">
+<![LOG[Remediation was requested now attempting to set location to the the CM PSDrive]LOG]!><time="15:45:51.106+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:98" context="" type="1" thread="" file="">
+<![LOG[Succesfully connected to the CMDrive]LOG]!><time="15:45:51.537+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:100" context="" type="1" thread="" file="">
+<![LOG[Succesfully validated connection to a CMProvider]LOG]!><time="15:45:51.979+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:109" context="" type="1" thread="" file="">
+<![LOG[Now completed inital validation steps]LOG]!><time="15:45:52.363+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:751" context="" type="1" thread="" file="">
+<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="15:46:30.275+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:747" context="" type="1" thread="" file="">
+<![LOG[Collected the Startingpath and stored it as E:\GITHUB\PowerShell\BlogPosts\HowTo - Add an AD Group Query Rule to a collection with PowerShell]LOG]!><time="15:46:30.783+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:749" context="" type="1" thread="" file="">
+<![LOG[The module was already loaded return  TRUE]LOG]!><time="15:46:31.320+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:132" context="" type="1" thread="" file="">
+<![LOG[The Module was not already loaded evaluate if remediation flag was set]LOG]!><time="15:46:31.885+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:138" context="" type="1" thread="" file="">
+<![LOG[Non-Standard module requested run pre-written function]LOG]!><time="15:46:32.327+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:147" context="" type="1" thread="" file="">
+<![LOG[Attempting to import SCCM Module]LOG]!><time="15:46:32.866+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:63" context="" type="1" thread="" file="">
+<![LOG[Succesfully imported the SCCM Module]LOG]!><time="15:46:33.341+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:66" context="" type="1" thread="" file="">
+<![LOG[Succesfully loaded the module]LOG]!><time="15:46:33.730+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:150" context="" type="1" thread="" file="">
+<![LOG[ConfigurationManager Module is loaded]LOG]!><time="15:46:34.164+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:89" context="" type="1" thread="" file="">
+<![LOG[Checking if current drive is a CMDrive]LOG]!><time="15:46:34.553+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:90" context="" type="1" thread="" file="">
+<![LOG[The location is NOT currently the CMDrive]LOG]!><time="15:46:34.971+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:94" context="" type="1" thread="" file="">
+<![LOG[Remediation was requested now attempting to set location to the the CM PSDrive]LOG]!><time="15:46:35.384+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:98" context="" type="1" thread="" file="">
+<![LOG[Succesfully connected to the CMDrive]LOG]!><time="15:46:35.818+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:100" context="" type="1" thread="" file="">
+<![LOG[Succesfully validated connection to a CMProvider]LOG]!><time="15:46:36.280+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:109" context="" type="1" thread="" file="">
+<![LOG[Now completed inital validation steps]LOG]!><time="15:46:36.656+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:751" context="" type="1" thread="" file="">
+<![LOG[Retrieved  and ]LOG]!><time="15:46:53.175+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
+<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="15:54:16.427+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:747" context="" type="1" thread="" file="">
+<![LOG[Collected the Startingpath and stored it as E:\GITHUB\PowerShell\BlogPosts\HowTo - Add an AD Group Query Rule to a collection with PowerShell]LOG]!><time="15:54:17.32+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:749" context="" type="1" thread="" file="">
+<![LOG[The module was already loaded return  TRUE]LOG]!><time="15:54:17.525+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:132" context="" type="1" thread="" file="">
+<![LOG[The Module was not already loaded evaluate if remediation flag was set]LOG]!><time="15:54:18.40+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:138" context="" type="1" thread="" file="">
+<![LOG[Non-Standard module requested run pre-written function]LOG]!><time="15:54:18.515+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:147" context="" type="1" thread="" file="">
+<![LOG[Attempting to import SCCM Module]LOG]!><time="15:54:18.977+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:63" context="" type="1" thread="" file="">
+<![LOG[Succesfully imported the SCCM Module]LOG]!><time="15:54:19.391+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:66" context="" type="1" thread="" file="">
+<![LOG[Succesfully loaded the module]LOG]!><time="15:54:19.770+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:150" context="" type="1" thread="" file="">
+<![LOG[ConfigurationManager Module is loaded]LOG]!><time="15:54:20.191+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:89" context="" type="1" thread="" file="">
+<![LOG[Checking if current drive is a CMDrive]LOG]!><time="15:54:20.554+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:90" context="" type="1" thread="" file="">
+<![LOG[The location is NOT currently the CMDrive]LOG]!><time="15:54:20.934+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:94" context="" type="1" thread="" file="">
+<![LOG[Remediation was requested now attempting to set location to the the CM PSDrive]LOG]!><time="15:54:21.369+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:98" context="" type="1" thread="" file="">
+<![LOG[Succesfully connected to the CMDrive]LOG]!><time="15:54:21.767+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:100" context="" type="1" thread="" file="">
+<![LOG[Succesfully validated connection to a CMProvider]LOG]!><time="15:54:22.136+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:109" context="" type="1" thread="" file="">
+<![LOG[Now completed inital validation steps]LOG]!><time="15:54:22.559+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:751" context="" type="1" thread="" file="">
+<![LOG[Retrieved  and ]LOG]!><time="15:54:34.693+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
+<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="15:56:48.463+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:747" context="" type="1" thread="" file="">
+<![LOG[Collected the Startingpath and stored it as E:\GITHUB\PowerShell\BlogPosts\HowTo - Add an AD Group Query Rule to a collection with PowerShell]LOG]!><time="15:56:48.931+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:749" context="" type="1" thread="" file="">
+<![LOG[The module was already loaded return  TRUE]LOG]!><time="15:56:49.374+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:132" context="" type="1" thread="" file="">
+<![LOG[The Module was not already loaded evaluate if remediation flag was set]LOG]!><time="15:56:49.794+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:138" context="" type="1" thread="" file="">
+<![LOG[Non-Standard module requested run pre-written function]LOG]!><time="15:56:50.181+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:147" context="" type="1" thread="" file="">
+<![LOG[Attempting to import SCCM Module]LOG]!><time="15:56:50.620+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:63" context="" type="1" thread="" file="">
+<![LOG[Succesfully imported the SCCM Module]LOG]!><time="15:56:51.39+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:66" context="" type="1" thread="" file="">
+<![LOG[Succesfully loaded the module]LOG]!><time="15:56:51.474+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:150" context="" type="1" thread="" file="">
+<![LOG[ConfigurationManager Module is loaded]LOG]!><time="15:56:51.907+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:89" context="" type="1" thread="" file="">
+<![LOG[Checking if current drive is a CMDrive]LOG]!><time="15:56:52.325+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:90" context="" type="1" thread="" file="">
+<![LOG[The location is NOT currently the CMDrive]LOG]!><time="15:56:52.763+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:94" context="" type="1" thread="" file="">
+<![LOG[Remediation was requested now attempting to set location to the the CM PSDrive]LOG]!><time="15:56:53.155+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:98" context="" type="1" thread="" file="">
+<![LOG[Succesfully connected to the CMDrive]LOG]!><time="15:56:53.564+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:100" context="" type="1" thread="" file="">
+<![LOG[Succesfully validated connection to a CMProvider]LOG]!><time="15:56:54.472+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:109" context="" type="1" thread="" file="">
+<![LOG[Now completed inital validation steps]LOG]!><time="15:56:54.851+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:751" context="" type="1" thread="" file="">
+<![LOG[Retrieved  and ]LOG]!><time="15:57:09.764+000" date="10-14-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
