@@ -618,14 +618,15 @@ function Get-Information{
             $InfoGatherForm.Add_Shown({$GroupTextBox.Select()})
             $Result = $InfoGatherForm.ShowDialog()
             if($Result -eq [System.Windows.Forms.DialogResult]::OK){
-            $Hash = @{
+            $Hash = [ordered]@{
                 GroupName = $GroupTextBox.Text
                 collectionID = $CollectionIDTextBOX.Text
                 SiteCodeID = $SiteCodeTextBox.Text
+                CollectionName = $ColNameTextBox.Text
                 CSVFile = $CSVTextBox.Text
             }
             $Object = New-Object -TypeName psobject -Property $Hash
-             $Object
+             return $Object
             }
         }
 }
@@ -641,45 +642,61 @@ function New-ADGroupQuery{
         [string]$CollectionName
         )
         if($CollectionName){
+            Write-Verbose -Message "Collection Name option was chosen"
             $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+            Write-Verbose -Message "Group Name has been set as $($GroupName)"
             $Query = @"
-            select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
+select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-                    Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
-            }
+            Write-Verbose -Message "The query was built as $($Query)"
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
+            Write-Verbose -Message "We ran the attempted add"    
+        }
         if($CollectionID){
+            Write-Verbose -Message "Collection ID option was chosen"
             $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+            Write-Verbose -Message "Group Name has been set as $($GroupName)"
             $Query = @"
-            select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
+select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-                    Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
-            }
+            Write-Verbose -Message "The query was built as $($Query)"
+            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query
+            Write-Verbose -Message "We ran the attempted add"      
+        }
 }
+
 }
+
 process{
     $StartingLocation = $(Get-Location).Path
     if(Test-ConfigMgrAvailable -Remediate:$true){
-    $Information = Get-Information
-    if($Information){
-        if($Information.CSVFile -ne ""){
-            $ColDataSet = import-csv -path $Information.CSVFile
-            foreach($Colitem in $ColDataSet){
-                if($Colitem.collectionID -eq $null){
-                #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
-                Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
-                }
-                if($Colitem.CollectionName -eq $null){
-                    #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
-                    Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+        $Information = Get-Information
+        Write-Verbose -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
+        if($Information){
+            Write-Verbose -Message "Now entering the information validation steps."
+            if($Information.CSVFile -ne ""){
+                Write-Verbose -Message "Validated that a CSV file was presented"
+                $ColDataSet = import-csv -path $Information.CSVFile
+                Write-Verbose -Message "Imported the CSV data"
+                foreach($Colitem in $ColDataSet){
+                    if($Colitem.collectionID -eq $null){
+                    #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
+                    Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
+                    }
+                    if($Colitem.CollectionName -eq $null){
+                        #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
+                        Write-Verbose -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+                    }
                 }
             }
-        if($Information.CSVFile -eq ""){
-            #New-ADGroupQuery -GroupName $Information.GroupName -CollectionID $Information.collectionID
-            Write-Verbose -Message "#New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID" -Verbose
+            if($Information.CSVFile -eq ""){
+                Write-Verbose -Message "No CSV File was provided assuming single event"
+                #ENHANCE: Add a notification that this process completes succesfully and re-open the form if needed?
+                New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)
+                Write-Verbose -Message "#New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)" -Verbose
+            }
+            
         }
-        }
-        
-    }
-    Set-location $StartingLocation
+        Set-location $StartingLocation
     }
 }
