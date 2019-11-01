@@ -1,7 +1,0 @@
-<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="11:34:52.793+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:752" context="" type="1" thread="" file="">
-<![LOG[Collected the Startingpath and stored it as C:\Users\jbenz001]LOG]!><time="11:34:52.846+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
-<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="11:35:06.174+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:752" context="" type="1" thread="" file="">
-<![LOG[Collected the Startingpath and stored it as C:\Users\jbenz001]LOG]!><time="11:35:06.198+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
-<![LOG[Now starting the AD AdGroup Query Process block]LOG]!><time="11:39:42.312+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:752" context="" type="1" thread="" file="">
-<![LOG[Collected the Startingpath and stored it as C:\Users\jbenz001]LOG]!><time="11:39:42.348+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:754" context="" type="1" thread="" file="">
-<![LOG[Now completed inital validation steps]LOG]!><time="11:39:44.207+000" date="10-20-2019" component="Add-ADGroupRuleGui.ps1:756" context="" type="1" thread="" file="">

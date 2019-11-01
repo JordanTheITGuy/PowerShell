@@ -464,7 +464,7 @@ function Get-Information{
             $GroupLabel = New-Object System.Windows.Forms.Label
             $GroupLabel.Location = New-Object System.Drawing.Size(10,20) 
             $GroupLabel.Size = New-Object System.Drawing.Size(315,20) 
-            $GroupLabel.Text = "Enter The Group Name - Supports wildcards"
+            $GroupLabel.Text = "Enter The Group Name"
             $GroupLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
             $InfoGatherForm.Controls.Add($GroupLabel) 
         
@@ -494,8 +494,11 @@ function Get-Information{
                             if($ADGroup.Substring($ADGroup.Length -1) -eq "*"){
                                 $ADGroup = "$($ADGroup.Substring(0,$ADGroup.Length-1))%"
                             }
+                            elseif (!($ADGroup.Substring($ADGroup.Length -1) -eq "%")){
+                                $ADGroup = "$($ADGroup)%"
+                            }
                         }
-                        $ADGroup = Get-WmiObject -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName like '$($ADGroup)'"
+                        $ADGroup = Get-CimInstance -ComputerName "$($(Get-PSDrive | Where-Object {$_.Provider -match 'CMSite'}).Root)" -Namespace "Root\SMS\site_$($SiteCodeTextBox.Text)" -Query "select distinct name,UserGroupName from SMS_R_UserGroup where UserGroupName like '$($ADGroup)'"
                         if(($ADGroup | Measure-Object).Count -eq 1){
                             $GroupTextBox.Text = $ADGroup.UserGroupName
                             $GroupTextBox.Update()
@@ -543,7 +546,7 @@ function Get-Information{
             $ColNameLabel.Location = New-Object System.Drawing.Size(145,70) 
             $ColNameLabel.Size = New-Object System.Drawing.Size(200,20) 
             $ColNameLabel.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
-            $ColNameLabel.Text = "Collection Name - Supports Wildcards"
+            $ColNameLabel.Text = "Collection Name"
             $InfoGatherForm.Controls.Add($ColNameLabel)
 
             $ColNameTextBox = New-Object System.Windows.Forms.TextBox
@@ -598,6 +601,9 @@ function Get-Information{
                         try{
                             if($ColName.Substring($ColName.Length -1) -eq "%"){
                                 $ColName = "$($ColName.Substring(0,$ColName.Length-1))*"
+                            }
+                            elseif (!($ColName.Substring($ColName.Length -1) -eq "*")) {
+                                $ColName = "$($ColName)*"
                             }
                             $CollInfo = Get-CMDeviceCollection -Name $ColName -ErrorAction Stop | select-object Name,collectionID
                             if($($CollInfo | Measure-Object).Count -eq 1){
@@ -717,34 +723,48 @@ function New-ADGroupQuery{
         [string]$CollectionName
         )
         try{
-        if($CollectionName){
-            Write-log -Message "Collection Name option was chosen"
-            $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
-            Write-log -Message "Group Name has been set as $($GroupName)"
-            $Query = @"
+            if($CollectionName){
+                Write-log -Message "Collection Name option was chosen"
+                $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+                Write-Log -Message "Validating if the rule already exists..."
+                if($null -ne $(Get-CMDeviceCollectionQueryMembershiprule -RuleName "All devices that are a member of AD Group $($GroupName)" -CollectionName $CollectionName)){
+                    Write-Error "A collection rule for this already exists. Do not re-create the rule" -ErrorAction Stop
+                }
+                Write-Log -Message "The rules does NOT already exist! Willing to create!"
+                Write-log -Message "Group Name has been set as $($GroupName)"
+                $Query = @"
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-            Write-log -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
-            Write-log -Message "We ran the attempted add"    
-        }
-        if($CollectionID){
-            Write-log -Message "Collection ID option was chosen"
-            $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
-            Write-log -Message "Group Name has been set as $($GroupName)"
-            $Query = @"
+                Write-log -Message "The query was built as $($Query)"
+                Add-CMDeviceCollectionQueryMembershiprule -CollectionName $CollectionName -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
+                Write-log -Message "We ran the attempted add now validating it was added"
+                if($null -ne $(Get-CMDeviceCollectionQueryMembershiprule -RuleName "All devices that are a member of AD Group $($GroupName)" -CollectionName $CollectionName)){
+                    Write-Log "The collection rule was created."   
+                }    
+            }
+            if($CollectionID){
+                Write-log -Message "Collection ID option was chosen"
+                $GroupName = "$((Get-ADDomain).Name)\\$GroupName"
+                Write-Log -Message "Validating if the rule already exists..."
+                if($null -ne $(Get-CMDeviceCollectionQueryMembershiprule -RuleName "All devices that are a member of AD Group $($GroupName)" -CollectionID $CollectionID)){
+                    Write-Error "A collection rule for this already exists. Do not re-create the rule" -ErrorAction Stop
+                }
+                Write-log -Message "Group Name has been set as $($GroupName)"
+                $Query = @"
 select SMS_R_SYSTEM.ResourceID,SMS_R_SYSTEM.ResourceType,SMS_R_SYSTEM.Name,SMS_R_SYSTEM.SMSUniqueIdentifier,SMS_R_SYSTEM.ResourceDomainORWorkgroup,SMS_R_SYSTEM.Client from SMS_R_System where SMS_R_System.SystemGroupName = "$groupName"
 "@
-            Write-log -Message "The query was built as $($Query)"
-            Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
-            Write-log -Message "We ran the attempted add"      
+                Write-log -Message "The query was built as $($Query)"
+                Add-CMDeviceCollectionQueryMembershiprule -CollectionID $CollectionID -RuleName "All devices that are a member of AD Group $($GroupName)" -QueryExpression $Query -Verbose:$false -ErrorAction Stop
+                Write-log -Message "We ran the attempted add now validating it was added"
+                if($null -ne $(Get-CMDeviceCollectionQueryMembershiprule -RuleName "All devices that are a member of AD Group $($GroupName)" -CollectionName $CollectionName)){
+                    Write-Log "The collection rule was created."   
+                }      
+            }
         }
-}
         catch{
-            Write-Log -Message "Something went wrong attempting to add $($GroupName) to the CollectionID:$($CollectionID) or CollectionName:$($CollectionName) please try again and use the validate options."
+            Write-Log -Message "Something went wrong attempting to add $($GroupName) to the CollectionID:$($CollectionID) or CollectionName:$($CollectionName) please try again and use the validate options." -LogLevel 3
         }
-}
-
+    }
 }
 
 process{
@@ -765,11 +785,11 @@ process{
                     foreach($Colitem in $ColDataSet){
                         if($Colitem.collectionID -eq $null){
                         #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
-                        Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)" -Verbose
+                        Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)"
                         }
                         if($Colitem.CollectionName -eq $null){
                             #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
-                            Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)" -Verbose
+                        Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)"
                         }
                     }
                 }
@@ -778,7 +798,6 @@ process{
                     Write-log -Message "Retrieved $($information.collectionID) and $($information.GroupName)"
                     #ENHANCE: Add a notification that this process completes succesfully and re-open the form if needed?
                     New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)
-                    Write-log -Message "#New-ADGroupQuery -GroupName $($Information.GroupName) -CollectionName $($Information.CollectionName)" -Verbose
                 }
             }
         }
