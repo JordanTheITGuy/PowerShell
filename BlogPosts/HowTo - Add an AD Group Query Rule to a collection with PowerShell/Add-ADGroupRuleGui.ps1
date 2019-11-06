@@ -260,7 +260,7 @@ function set-DefaultLogPath {
           {
                $LogPath = $LogLocation
                $LogFile = "$($($script:MyInvocation.MyCommand.Name).Substring(0,$($script:MyInvocation.MyCommand.Name).Length-4)).log"		
-               Start-$InfoGatherFormLog -FilePath $($LogPath + "\" + $LogFile)
+               Start-Log -FilePath $($LogPath + "\" + $LogFile)
           }
 }
 
