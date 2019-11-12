@@ -1,0 +1,10 @@
+"Import Configuration Manager Module" : {
+    "prefix": "Import-CM-Module",
+    "body": [
+      "if($$ENV:SMS_ADMIN_UI_PATH)",
+      "{",
+      "import-module (Join-Path $(Split-Path $$ENV:SMS_ADMIN_UI_PATH) ConfigurationManager.psd1)",
+      "}",
+    ],
+    "description": "This Snippet is used to import the Configuration Manager PowerShell module in scripts that are run on a machine where the console is installed.",
+}
