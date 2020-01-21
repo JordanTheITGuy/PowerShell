@@ -61,7 +61,7 @@ function Get-CMModule {
     Try
     {
         Write-Debug -message "Attempting to import SCCM Module"
-        #Retrieves the fcnction from ConfigMgr installation path. 
+        #NOTE: Retrieves the fcnction from ConfigMgr installation path. 
         Import-Module (Join-Path $(Split-Path $ENV:SMS_ADMIN_UI_PATH) ConfigurationManager.psd1) -Verbose:$false
         Write-Debug -Message "Succesfully imported the SCCM Module"
     }
@@ -81,24 +81,24 @@ function Test-ConfigMgrAvailable {
         try
         {
             if((Test-Module -ModuleName ConfigurationManager -Remediate:$true) -eq $false)
-            #Checks to see if the Configuration Manager module is loaded or not and then since the remediate flag is set automatically imports it.
+            #NOTE: Checks to see if the Configuration Manager module is loaded or not and then since the remediate flag is set automatically imports it.
             { 
                 throw "You have not loaded the configuration manager module please load the appropriate module and try again."
-                #Throws this error if even after the remediation or if the remediation fails. 
+                #NOTE: Throws this error if even after the remediation or if the remediation fails. 
             }
             write-debug -Message "ConfigurationManager Module is loaded"
             write-debug -Message "Checking if current drive is a CMDrive"
             if((Get-location -Verbose:$false).Path -ne (Get-location -PSProvider 'CmSite' -Verbose:$false).Path)
-            #Checks if the current location is the - PS provider for the CMSite server. 
+            #NOTE: Checks if the current location is the - PS provider for the CMSite server. 
             {
                 write-debug -Message "The location is NOT currently the CMDrive"
                 if($Remediate)
-                #If the remediation field is set then it attempts to set the current location of the path to the CMSite server path. 
+                #NOTE: If the remediation field is set then it attempts to set the current location of the path to the CMSite server path. 
                     {
                         write-debug -Message "Remediation was requested now attempting to set location to the the CM PSDrive"
                         Set-Location -Path (((Get-PSDrive -PSProvider CMSite -Verbose:$false).Name) + ":") -Verbose:$false
                         write-debug -Message "Succesfully connected to the CMDrive"
-                        #Sets the location properly to the PSDrive.
+                        #NOTE: Sets the location properly to the PSDrive.
                     }
 
                 else
@@ -127,26 +127,26 @@ function Test-Module {
         [bool]$Remediate
     )
     If(Get-Module -Name $ModuleName)
-    #Checks if the module is currently loaded and if it is then return true.
+    #NOTE: Checks if the module is currently loaded and if it is then return true.
     {
         write-debug -Message "The module was already loaded return  TRUE"
          $true
     }
     If((Get-Module -Name $ModuleName) -ne $true)
-    #Checks if the module is NOT loaded and if it's not loaded then check to see if remediation is requested. 
+    #NOTE: Checks if the module is NOT loaded and if it's not loaded then check to see if remediation is requested. 
     {
         write-debug -Message "The Module was not already loaded evaluate if remediation flag was set"
         if($Remediate -eq $true)
-        #If the remediation flag is selected then attempt to import the module. 
+        #NOTE: If the remediation flag is selected then attempt to import the module. 
         {
             try 
             {
                     if($ModuleName -eq "ConfigurationManager")
-                    #If the module requested is the Configuration Manager module use the below method to try to import the ConfigMGr Module.
+                    #NOTE: If the module requested is the Configuration Manager module use the below method to try to import the ConfigMGr Module.
                     {
                         write-debug -Message "Non-Standard module requested run pre-written function"
                         Get-CMModule
-                        #Runs the command to get the COnfigMgr module if its needed. 
+                        #NOTE: Runs the command to get the COnfigMgr module if its needed. 
                         write-debug -Message "Succesfully loaded the module"
                         $true
                     }
@@ -154,7 +154,7 @@ function Test-Module {
                     {
                     write-debug -Message "Remediation flag WAS set now attempting to import module $($ModuleName)"
                     Import-Module -Name $ModuleName
-                    #Import  the other module as needed - if they have no custom requirements.
+                    #NOTE: Import  the other module as needed - if they have no custom requirements.
                     write-debug -Message "Succesfully improted the module $ModuleName"
                      $true
                     }
@@ -166,7 +166,7 @@ function Test-Module {
             }
         }
         else {
-            #Else return the fact that it's not applicable and  false from the execution.
+            #NOTE: Else return the fact that it's not applicable and  false from the execution.
             {
                  $false
             }
@@ -185,14 +185,14 @@ Function Start-Log {
                     {
                          New-Item (Split-Path $FilePath -Parent) -Type Directory | Out-Null
                     }
-                    #Confirm the provided destination for logging exists if it doesn't then create it.
+                    #NOTE: Confirm the provided destination for logging exists if it doesn't then create it.
                     if (!(Test-Path $FilePath))
                          {
-                             ## Create the log file destination if it doesn't exist.
+                             #NOTE: Create the log file destination if it doesn't exist.
                              New-Item $FilePath -Type File | Out-Null
                          }
-                         ## Set the global variable to be used as the FilePath for all subsequent Write-log
-                         ## calls in this session
+                         #NOTE: Set the global variable to be used as the FilePath for all subsequent Write-log
+                         #NOTE:  calls in this session
                          $global:ScriptLogFilePath = $FilePath
               }
          catch
@@ -435,7 +435,7 @@ function Get-Information{
                 }
             })
         
-            #OK Button
+            #NOTE: OK Button
             $OKButton = New-Object System.Windows.Forms.Button
             $OKButton.Location = New-Object System.Drawing.Size(10,225)
             $OKButton.Anchor = [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left
@@ -447,7 +447,7 @@ function Get-Information{
             })
             $InfoGatherForm.Controls.Add($OKButton)
             
-            #Cancel Button
+            #NOTE: Cancel Button
             $CancelButton = New-Object System.Windows.Forms.Button
             $CancelButton.Location = New-Object System.Drawing.Size(375,225)
             $CancelButton.Size = New-Object System.Drawing.Size(75,23)
@@ -460,7 +460,7 @@ function Get-Information{
              })
             $InfoGatherForm.Controls.Add($CancelButton)
                   
-            ###ADGroup Information###
+            #NOTE: ###ADGroup Information###
             $GroupLabel = New-Object System.Windows.Forms.Label
             $GroupLabel.Location = New-Object System.Drawing.Size(10,20) 
             $GroupLabel.Size = New-Object System.Drawing.Size(315,20) 
@@ -481,7 +481,7 @@ function Get-Information{
 
             $InfoGatherForm.Controls.Add($GroupTextBox)
             
-            ###AD Group Search###
+            #NOTE: ###AD Group Search###
             $SearchADButton = New-Object System.Windows.Forms.Button
             $SearchADButton.Location = New-Object System.Drawing.Size(375,40)
             $SearchADButton.Size = New-Object System.Drawing.Size(75,23)
@@ -519,7 +519,7 @@ function Get-Information{
             })
             $InfoGatherForm.Controls.Add($SearchADButton)
 
-            ###Collection ID Information###
+            #NOTE: ###Collection ID Information###
             $CollectionLabel = New-Object System.Windows.Forms.Label
             $CollectionLabel.Location = New-Object System.Drawing.Size(10,70) 
             $CollectionLabel.Size = New-Object System.Drawing.Size(135,20) 
@@ -540,7 +540,7 @@ function Get-Information{
             })
             $InfoGatherForm.Controls.Add($CollectionIDTextBOX)
         
-            ###Collection Name Info###
+            #NOTE: ###Collection Name Info###
 
             $ColNameLabel = New-Object System.Windows.Forms.Label
             $ColNameLabel.Location = New-Object System.Drawing.Size(145,70) 
@@ -562,7 +562,7 @@ function Get-Information{
             })
             $InfoGatherForm.Controls.Add($ColNameTextBox)
 
-            ###Search Button###
+            #NOTE:  ###Search Button###
             $SearchCollButton = New-Object System.Windows.Forms.Button
             $SearchCollButton.Location = New-Object System.Drawing.Size(375,90)
             $SearchCollButton.Size = New-Object System.Drawing.Size(75,23)
@@ -635,7 +635,7 @@ function Get-Information{
                 })
             $InfoGatherForm.Controls.Add($SearchCollButton)
                   
-            ###Site Server ID ###
+            #NOTE: ###Site Server ID ###
             $SiteCodeLabel = New-Object System.Windows.Forms.Label
             $SiteCodeLabel.Location = New-Object System.Drawing.Size(10,120) 
             $SiteCodeLabel.Size = New-Object System.Drawing.Size(100,20) 
@@ -653,7 +653,7 @@ function Get-Information{
            $SiteCodeTextBox.Text = "$CMSiteCode"
            $InfoGatherForm.Controls.Add($SiteCodeTextBox)
 
-            ###CSV Info###
+            #NOTE: ###CSV Info###
 
             $CSVLabel = New-Object System.Windows.Forms.Label
             $CSVLabel.Location = New-Object System.Drawing.Size(150,120) 
@@ -670,7 +670,7 @@ function Get-Information{
             $CSVTextBox.Text = ""
             $InfoGatherForm.Controls.Add($CSVTextBox)
 
-            ###Search CSV Button###
+            #NOTE: ###Search CSV Button###
             $SearchCSVButton = New-Object System.Windows.Forms.Button
             $SearchCSVButton.Location = New-Object System.Drawing.Size(375,140)
             $SearchCSVButton.Size = New-Object System.Drawing.Size(75,23)
@@ -693,7 +693,7 @@ function Get-Information{
             })
             $InfoGatherForm.Controls.Add($SearchCSVButton)
 
-            ###Display Form###
+            #NOTE: ###Display Form###
 
             $InfoGatherForm.Topmost = $True
             $InfoGatherForm.Add_Shown({$GroupTextBox.Select()})
@@ -784,11 +784,11 @@ process{
                     Write-log -Message "Imported the CSV data"
                     foreach($Colitem in $ColDataSet){
                         if($Colitem.collectionID -eq $null){
-                        #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
+                        New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionName $ColItem.CollectionName
                         Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionName $($ColItem.CollectionName)"
                         }
                         if($Colitem.CollectionName -eq $null){
-                            #New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
+                        New-ADGroupQuery -GroupName $ColItem.GroupName -CollectionID $ColItem.CollectionID
                         Write-log -Message "#New-ADGroupQuery -GroupName $($ColItem.GroupName) -CollectionID $($ColItem.CollectionID)"
                         }
                     }
