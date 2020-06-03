@@ -8,7 +8,7 @@
 
 .EXAMPLE
     This script uses some parameters here is an example of usage:
-    PR1:\> C:\scripts\Create-MaintenanceCollections.Ps1 -LimitingCollectionID "SMS00001" -NumberofDays 5 -FolderPath "PR1:\DeviceCollections\SUM - PatchingCollections\Maintenance Collections"
+    PR1:\> C:\scripts\Create-MaintenanceCollections.Ps1 -LimitingCollectionID "SMS00001" -NumberofDays 5 -FolderPath "PR1:\DeviceCollection\SUM - PatchingCollections\Maintenance Collections"
 
 .NOTES
     FileName:    Create-MaintenanceCollections.PS1
