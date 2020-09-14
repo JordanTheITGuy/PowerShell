@@ -53,6 +53,7 @@ function Get-RemoteTime {
         [string]$ComputerName
     )
     $TimeZone = Invoke-Command -ComputerName $ComputerName -ScriptBlock {Get-TimeZone}
-    $CurrentTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId((Get-Date), "$($TimeZone.ID)")
-    return $CurrentTime
+    $Time = Invoke-Command -ComputerName $ComputerName -ScriptBlock {Get-Date}
+    $CurrentTime = [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId(($Time), "$($TimeZone.ID)")
+    return "The current time of the remote machine is: $($CurrentTime) it's TimeZone ID is: $($TimeZone.ID)"
 }
