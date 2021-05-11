@@ -9,11 +9,11 @@ param(
     [Parameter(HelpMessage = "Enter the vlanID" , Mandatory = $FALSE)]
     [Int32]$vlanID = 101,
     [Parameter(HelpMessage = "Enter the starting memory" , Mandatory = $FALSE)]
-    [int32]$startupMem = 4096
+    [int64]$startupMem = 4GB
 )
 begin{}
 process{
-    New-VM -Name $ClientName -path "$VMPath\$ClientName" -MemoryStartup $($startupMem) -BootDevice NetworkAdapter -Generation 2 -NewVHDSizeBytes 40GB -NewVHDPath "$VMPath\$ClientName\$($ClientName).vhdx" -SwitchName "EXTERNAL"
+    New-VM -Name $ClientName -path "$VMPath\$ClientName" -MemoryStartup $startupMem -BootDevice NetworkAdapter -Generation 2 -NewVHDSizeBytes 40GB -NewVHDPath "$VMPath\$ClientName\$($ClientName).vhdx" -SwitchName "EXTERNAL"
     Set-VMNetworkAdapterVlan -VMName $ClientName -Access -VlanId $vlanID
     Set-VMProcessor -VMName $ClientName -Count $CoreCount
 }
