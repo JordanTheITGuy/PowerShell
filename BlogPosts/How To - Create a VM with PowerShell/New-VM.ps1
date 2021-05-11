@@ -1,6 +1,6 @@
-[CmdletBinding()]
+[cmdletbinding()]
 param(
-    [Parameter(HelpMessagle = "Enter the VMName" , Mandatory = $true)]
+    [Parameter(HelpMessage = "Enter the VMName" , Mandatory = $true)]
     [string]$ClientName,
     [Parameter(HelpMessage = "Enter the VMPath" , Mandatory = $false)]
     [string]$VMPath = "E:\Hyper-V",
@@ -9,9 +9,11 @@ param(
     [Parameter(HelpMessage = "Enter the vlanID" , Mandatory = $FALSE)]
     [Int32]$vlanID = 101,
     [Parameter(HelpMessage = "Enter the starting memory" , Mandatory = $FALSE)]
-    [string]$startupMem = "4GB"
+    [int32]$startupMem = 4096
 )
-
-New-VM -Name $ClientName -path "$VMPath\$ClientName" -MemoryStartup $startupMem -BootDevice NetworkAdapter -Generation 2 -NewVHDSizeBytes 40GB -NewVHDPath "$VMPath\$ClientName\$($ClientName).vhdx" -SwitchName "EXTERNAL"
-Set-VMNetworkAdapterVlan -VMName $ClientName -Access -VlanId $vlanID
-Set-VMProcessor -VMName $ClientName -Count $CoreCount
+begin{}
+process{
+    New-VM -Name $ClientName -path "$VMPath\$ClientName" -MemoryStartup $($startupMem) -BootDevice NetworkAdapter -Generation 2 -NewVHDSizeBytes 40GB -NewVHDPath "$VMPath\$ClientName\$($ClientName).vhdx" -SwitchName "EXTERNAL"
+    Set-VMNetworkAdapterVlan -VMName $ClientName -Access -VlanId $vlanID
+    Set-VMProcessor -VMName $ClientName -Count $CoreCount
+}
